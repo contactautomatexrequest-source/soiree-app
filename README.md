@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RéponsIA Avis - V2
 
-## Getting Started
+SaaS pour générer automatiquement des réponses professionnelles aux avis Google avec l'IA.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Supabase** (Auth + DB + RLS)
+- **Stripe** (Abonnements)
+- **OpenAI** (Génération de réponses)
+- **Netlify** (Déploiement)
+
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Installer les dépendances
+pnpm install
+
+# Configurer les variables d'environnement
+cp .env.local.example .env.local
+# Remplir les valeurs dans .env.local
+
+# Lancer le serveur de développement
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Variables d'environnement requises
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Voir `.env.local.example` pour la liste complète.
 
-## Learn More
+### Supabase
 
-To learn more about Next.js, take a look at the following resources:
+1. Créer un projet Supabase (région Europe)
+2. Exécuter le schéma SQL : `supabase/schema.sql`
+3. Configurer les variables dans `.env.local`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Stripe
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Créer les produits/prix dans Stripe Dashboard
+2. Récupérer les Price IDs et les configurer dans `.env.local`
+3. Configurer le webhook : `https://votre-domaine.netlify.app/api/stripe/webhook`
 
-## Deploy on Vercel
+### OpenAI
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Créer une clé API OpenAI
+2. Configurer dans `.env.local`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Gmail OAuth
+
+1. Créer un projet Google Cloud
+2. Activer Gmail API
+3. Créer des credentials OAuth 2.0
+4. Configurer l'URI de redirection : `http://localhost:3000/api/auth/gmail/callback`
+5. Configurer dans `.env.local`
+
+## Déploiement Netlify
+
+1. Connecter le repo GitHub à Netlify
+2. Configurer les variables d'environnement dans Netlify
+3. Déployer
+
+## Structure
+
+```
+app/
+  (public)/          # Pages publiques (landings métier)
+  app/               # Pages app (protégées)
+  api/               # Routes API
+components/          # Composants React
+lib/                 # Utilitaires (Supabase, Stripe, OpenAI)
+supabase/            # Schéma SQL
+```
+
+## Fonctionnalités
+
+- ✅ Auth Supabase
+- ✅ Onboarding (choix métier + profil)
+- ✅ Mode simple (coller avis → réponse IA)
+- ✅ Historique des avis
+- ✅ Abonnements Stripe (Free, Pro, Business, Agence)
+- ✅ 5 landing pages SEO par métier
+- ✅ RLS strict sur toutes les tables

@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RéponsIA Avis - Répondez aux avis Google avec l'IA",
-  description: "Générez des réponses professionnelles aux avis Google en quelques secondes grâce à l'intelligence artificielle.",
+  title: "AvisPro — La protection automatique de ta réputation.",
+  description: "Tes avis Google gérés automatiquement. Réponses professionnelles en quelques secondes grâce à l'intelligence artificielle.",
 };
 
 export default function RootLayout({

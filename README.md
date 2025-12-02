@@ -1,4 +1,4 @@
-# RéponsIA Avis - V2
+# AvisPro - La protection automatique de ta réputation
 
 SaaS pour générer automatiquement des réponses professionnelles aux avis Google avec l'IA.
 

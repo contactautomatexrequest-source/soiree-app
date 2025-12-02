@@ -29,6 +29,9 @@ export async function POST(req: NextRequest) {
     const stripeSubscription = await stripe.subscriptions.retrieve(
       subscription.stripe_subscription_id
     );
+    // Gérer les deux cas possibles (Stripe.Subscription direct ou Response<Stripe.Subscription>)
+    const stripeSubData: any =
+      (stripeSubscription as any)?.data ?? stripeSubscription;
 
     // Reprendre la subscription Stripe
     await stripe.subscriptions.update(subscription.stripe_subscription_id, {
@@ -36,7 +39,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Mapper le priceId au plan
-    const priceId = stripeSubscription.items.data[0]?.price.id;
+    const priceId = stripeSubData.items?.data?.[0]?.price?.id;
     const { STRIPE_PRICE_IDS } = await import("@/lib/stripe");
     
     let restoredPlan = "free"; // Par défaut
@@ -54,7 +57,9 @@ export async function POST(req: NextRequest) {
       .update({
         plan: restoredPlan as any,
         status: "active",
-        current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+        current_period_end: stripeSubData?.current_period_end
+          ? new Date(stripeSubData.current_period_end * 1000).toISOString()
+          : null,
       })
       .eq("user_id", user.id);
 

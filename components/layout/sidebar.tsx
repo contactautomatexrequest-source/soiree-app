@@ -139,7 +139,7 @@ export function Sidebar() {
     <aside className="w-64 bg-slate-950 border-r border-slate-800 min-h-screen p-6">
       <div className="mb-8">
         <Link href="/">
-          <h2 className="text-xl font-bold mb-3 text-black bg-white px-3 py-1 rounded inline-block hover:bg-slate-100 transition-colors duration-200 cursor-pointer">RéponsIA Avis</h2>
+          <h2 className="text-xl font-bold mb-3 text-black bg-white px-3 py-1 rounded inline-block hover:bg-slate-100 transition-colors duration-200 cursor-pointer">AvisPro</h2>
         </Link>
         <div className="flex items-center gap-2 mb-2">
           <Badge className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-medium shadow-sm shadow-indigo-500/10">

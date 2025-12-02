@@ -15,7 +15,7 @@ export default function HomePage() {
       {/* Header */}
       <header className="border-b bg-white">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">RéponsIA Avis</h1>
+          <h1 className="text-2xl font-bold text-blue-600">AvisPro</h1>
           <div className="flex gap-4">
             <Link href="/sign-in">
               <Button variant="ghost">Connexion</Button>
@@ -109,7 +109,7 @@ export default function HomePage() {
           Prêt à gagner du temps ?
         </h3>
         <p className="text-gray-600 mb-8">
-          Rejoignez les centaines d'établissements qui utilisent RéponsIA Avis.
+          Rejoignez les centaines d'établissements qui utilisent AvisPro.
         </p>
         <Link href="/sign-up">
           <Button size="lg">Essayer gratuitement</Button>
@@ -119,7 +119,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t bg-white py-8">
         <div className="container mx-auto px-4 text-center text-gray-600">
-          <p>© 2024 RéponsIA Avis. Tous droits réservés.</p>
+          <p>© 2024 AvisPro. Tous droits réservés.</p>
         </div>
       </footer>
     </div>

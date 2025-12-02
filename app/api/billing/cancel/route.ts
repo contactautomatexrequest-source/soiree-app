@@ -31,6 +31,11 @@ export async function POST(req: NextRequest) {
     const stripeSubscription = await stripe.subscriptions.retrieve(
       subscription.stripe_subscription_id
     );
+    // Selon la version du SDK Stripe, la subscription peut être retournée
+    // soit directement, soit encapsulée dans un objet "Response".
+    // On gère les deux cas de manière sûre pour TypeScript.
+    const stripeSubData: any =
+      (stripeSubscription as any)?.data ?? stripeSubscription;
 
     // Annuler la subscription Stripe
     if (atPeriodEnd) {
@@ -46,7 +51,9 @@ export async function POST(req: NextRequest) {
         .update({
           plan: "free" as any,
           status: "cancel_at_period_end",
-          current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+          current_period_end: stripeSubData?.current_period_end
+            ? new Date(stripeSubData.current_period_end * 1000).toISOString()
+            : null,
         })
         .eq("user_id", user.id);
     } else {

@@ -4,7 +4,7 @@ import { GoogleBadge } from "@/components/ui/GoogleBadge";
 import { GoogleGradientBar } from "@/components/ui/GoogleGradientBar";
 
 export const metadata = {
-  title: "Répondre aux avis Google pour Restaurants | RéponsIA Avis",
+  title: "Répondre aux avis Google pour Restaurants | AvisPro",
   description: "Générez des réponses professionnelles aux avis Google pour votre restaurant. Adapté au secteur de la restauration avec vocabulaire et ton appropriés.",
 };
 
@@ -15,7 +15,7 @@ export default function RestaurantsPage() {
         <div className="container mx-auto px-6 py-4 flex justify-between items-center animate-fade-in">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-2xl font-bold text-blue-600 transition-all duration-200 ease-out hover:scale-105">
-              RéponsIA Avis
+              AvisPro
             </Link>
             <GoogleBadge />
           </div>
@@ -77,7 +77,7 @@ export default function RestaurantsPage() {
 
         {/* Solution */}
         <div className="max-w-4xl mx-auto mb-16 bg-blue-50 p-8 rounded-lg">
-          <h2 className="text-3xl font-bold mb-6">La solution RéponsIA Avis</h2>
+          <h2 className="text-3xl font-bold mb-6">La solution AvisPro</h2>
           <p className="text-lg mb-6">
             Notre IA comprend les spécificités de la restauration et génère des réponses qui :
           </p>
@@ -91,7 +91,7 @@ export default function RestaurantsPage() {
 
         {/* Bénéfices */}
         <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold mb-8">Pourquoi choisir RéponsIA Avis pour votre restaurant ?</h2>
+          <h2 className="text-3xl font-bold mb-8">Pourquoi choisir AvisPro pour votre restaurant ?</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
               <h3 className="font-semibold mb-2">Gain de temps</h3>

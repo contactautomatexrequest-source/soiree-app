@@ -1,4 +1,4 @@
-# Configuration Gmail OAuth pour RéponsIA Avis
+# Configuration Gmail OAuth pour AvisPro
 
 Ce guide vous explique comment configurer la connexion Gmail OAuth pour récupérer automatiquement les avis Google.
 
@@ -8,7 +8,7 @@ Ce guide vous explique comment configurer la connexion Gmail OAuth pour récupé
 
 1. Allez sur [Google Cloud Console](https://console.cloud.google.com/)
 2. Créez un nouveau projet ou sélectionnez un projet existant
-3. Nommez-le "RéponsIA Avis" ou similaire
+3. Nommez-le "AvisPro" ou similaire
 
 ### 1.2 Activer l'API Gmail
 
@@ -21,7 +21,7 @@ Ce guide vous explique comment configurer la connexion Gmail OAuth pour récupé
 1. Allez dans **APIs & Services** > **OAuth consent screen**
 2. Choisissez **External** (pour les utilisateurs externes)
 3. Remplissez les informations :
-   - **App name** : RéponsIA Avis
+   - **App name** : AvisPro
    - **User support email** : votre email
    - **Developer contact information** : votre email
 4. Cliquez sur **Save and Continue**
@@ -37,7 +37,7 @@ Ce guide vous explique comment configurer la connexion Gmail OAuth pour récupé
 2. Cliquez sur **Create Credentials** > **OAuth client ID**
 3. Choisissez **Web application**
 4. Configurez :
-   - **Name** : RéponsIA Avis Web Client
+   - **Name** : AvisPro Web Client
    - **Authorized JavaScript origins** :
      - `http://localhost:3000` (pour le développement)
      - `https://votre-domaine.com` (pour la production)

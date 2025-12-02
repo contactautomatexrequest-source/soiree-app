@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: process.env.EMAIL_FROM || "noreply@reponsia.fr",
       to: email,
-      subject: "Test - RéponsIA Avis",
+      subject: "Test - AvisPro",
       html: `
         <h2>Email de test</h2>
         <p>Si tu reçois cet email, le transfert fonctionne correctement !</p>

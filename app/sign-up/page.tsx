@@ -51,12 +51,12 @@ export default function SignUpPage() {
       <div className="w-full max-w-5xl bg-white text-neutral-900 rounded-2xl shadow-xl p-10 animate-fade-in-up">
         {/* Titre renforcé */}
         <h1 className="text-4xl md:text-5xl font-bold mb-3 text-center leading-tight">
-          Crée ton compte et génère ta première réponse
+          Active tes réponses automatiques AvisPro en 30 secondes
         </h1>
         
         {/* Sous-texte prometteur */}
         <p className="text-lg text-neutral-700 mb-8 text-center max-w-2xl mx-auto">
-          En 30 secondes, tu auras ta première réponse IA prête à publier.
+          Dès l'inscription, l'IA commence à préparer tes réponses aux avis Google automatiquement.
         </p>
 
         {error && (

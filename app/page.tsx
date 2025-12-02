@@ -18,7 +18,7 @@ export default function HomePage() {
       <header className="border-b border-neutral-200 bg-white shadow-sm transition-all duration-200 ease-out">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center animate-fade-in">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-blue-600 transition-all duration-200 ease-out hover:scale-105">RéponsIA Avis</h1>
+            <h1 className="text-2xl font-bold text-blue-600 transition-all duration-200 ease-out hover:scale-105">AvisPro</h1>
             <GoogleBadge />
           </div>
           <div className="flex gap-4">
@@ -43,9 +43,12 @@ export default function HomePage() {
               Ne perds plus jamais un client à cause d'un avis non répondu
             </h2>
             
-            {/* Sous-titre orienté automatisation immédiate */}
-            <p className="text-xl text-neutral-700 mb-8 text-center max-w-2xl mx-auto">
-              L'IA répond automatiquement à tous tes avis Google en moins de 30 secondes.
+            {/* Sous-titre avec slogan AvisPro */}
+            <p className="text-xl text-neutral-700 mb-4 text-center max-w-2xl mx-auto font-semibold">
+              AvisPro — La protection automatique de ta réputation.
+            </p>
+            <p className="text-lg text-neutral-600 mb-8 text-center max-w-2xl mx-auto">
+              Tes avis Google gérés automatiquement. L'IA répond à tous tes avis en moins de 30 secondes.
             </p>
 
             {/* 3 bénéfices visibles immédiatement - Orientés perte évitée */}
@@ -127,7 +130,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t bg-white py-8">
         <div className="container mx-auto px-4 text-center text-gray-600">
-          <p>© 2024 RéponsIA Avis. Tous droits réservés.</p>
+          <p>© 2024 AvisPro. Tous droits réservés.</p>
         </div>
       </footer>
     </div>

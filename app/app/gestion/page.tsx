@@ -337,7 +337,7 @@ export default function GestionPage() {
       <div className="flex-shrink-0 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-indigo-500/20 border-b border-indigo-500/30 px-6 py-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-50 mb-6">
-            Gestion de l'abonnement
+            Abonnement AvisPro
           </h1>
           
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -469,7 +469,7 @@ export default function GestionPage() {
 
         {/* C. Bloc gestion de l'abonnement */}
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-xl font-bold text-slate-50 mb-4">Gestion de l'abonnement</h2>
+          <h2 className="text-xl font-bold text-slate-50 mb-4">Gestion de l'abonnement AvisPro</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button
               onClick={() => router.push("/app/facturation")}

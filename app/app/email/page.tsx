@@ -144,7 +144,7 @@ export default function EmailPage() {
       {/* Message principal (hero) */}
       <div className="mb-6 flex-shrink-0">
         <h1 className="text-2xl font-bold text-slate-50 mb-2">
-          Active les réponses automatiques en 1 seule configuration
+          Automatisation AvisPro
         </h1>
         <p className="text-sm text-slate-400">
           Une fois activé, l'IA gère tous tes avis sans aucune intervention.

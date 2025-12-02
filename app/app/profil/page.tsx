@@ -465,13 +465,13 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-50 mb-2">
               {isPaidPlan(userPlan) 
-                ? "Protection active de ta réputation"
-                : "Gère tes avis Google efficacement"}
+                ? "Tableau de bord AvisPro"
+                : "Tableau de bord AvisPro"}
             </h1>
             <p className="text-sm md:text-base text-slate-300">
               {isPaidPlan(userPlan)
-                ? "Chaque avis est surveillé, analysé et traité automatiquement"
-                : "Passe en Pro pour activer la protection automatique de ton image"}
+                ? "AvisPro — La protection automatique de ta réputation. Chaque avis est surveillé, analysé et traité automatiquement."
+                : "AvisPro — Passe en Pro pour activer la protection automatique de ton image"}
             </p>
           </div>
           <div className="flex items-center gap-4">

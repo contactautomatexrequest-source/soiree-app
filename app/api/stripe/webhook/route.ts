@@ -52,7 +52,13 @@ export async function POST(req: NextRequest) {
             const stripeSubscription = await stripe.subscriptions.retrieve(
               session.subscription as string
             );
-            periodEnd = new Date(stripeSubscription.current_period_end * 1000).toISOString();
+            const stripeSubData: any =
+              (stripeSubscription as any)?.data ?? stripeSubscription;
+            if (stripeSubData?.current_period_end) {
+              periodEnd = new Date(
+                stripeSubData.current_period_end * 1000
+              ).toISOString();
+            }
           }
           
           // Mettre à jour la subscription (elle existe déjà grâce au trigger)
@@ -94,7 +100,10 @@ export async function POST(req: NextRequest) {
             newPlan = "agence";
           }
 
-          const periodEnd = subscription.current_period_end;
+          const periodEnd = (subscription as any).current_period_end as
+            | number
+            | null
+            | undefined;
           const isCanceled = subscription.cancel_at_period_end;
           
           // Déterminer le statut et le plan corrects
@@ -158,12 +167,15 @@ export async function POST(req: NextRequest) {
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
+        const invoiceData: any = invoice as any;
 
         // Mettre à jour la date de fin de période si nécessaire
-        if (invoice.subscription) {
+        if (invoiceData.subscription) {
           const stripeSubscription = await stripe.subscriptions.retrieve(
-            invoice.subscription as string
+            invoiceData.subscription as string
           );
+          const stripeSubData: any =
+            (stripeSubscription as any)?.data ?? stripeSubscription;
           
           const { data: sub } = await supabaseAdmin
             .from("subscriptions")
@@ -176,7 +188,11 @@ export async function POST(req: NextRequest) {
               .from("subscriptions")
               .update({
                 status: "active",
-                current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+                current_period_end: stripeSubData?.current_period_end
+                  ? new Date(
+                      stripeSubData.current_period_end * 1000
+                    ).toISOString()
+                  : null,
               })
               .eq("user_id", sub.user_id);
           }

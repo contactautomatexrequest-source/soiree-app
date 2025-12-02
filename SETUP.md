@@ -1,4 +1,4 @@
-# Guide de Configuration - RéponsIA Avis V2
+# Guide de Configuration - AvisPro
 
 ## 1. Variables d'environnement
 

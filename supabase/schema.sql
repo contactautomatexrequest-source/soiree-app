@@ -1,5 +1,5 @@
 -- ============================================
--- SCHÉMA SUPABASE POUR "RÉPONSIA AVIS"
+-- SCHÉMA SUPABASE POUR "AVISPRO"
 -- ============================================
 
 -- Extension pour UUID

@@ -4,7 +4,7 @@ import { GoogleBadge } from "@/components/ui/GoogleBadge";
 import { GoogleGradientBar } from "@/components/ui/GoogleGradientBar";
 
 export const metadata = {
-  title: "Répondre aux avis Google pour Coachs Sportifs | RéponsIA Avis",
+  title: "Répondre aux avis Google pour Coachs Sportifs | AvisPro",
   description: "Générez des réponses professionnelles aux avis Google pour votre activité de coaching. Adapté au secteur du sport et bien-être avec vocabulaire et ton appropriés.",
 };
 
@@ -15,7 +15,7 @@ export default function CoachsPage() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-2xl font-bold text-blue-600">
-              RéponsIA Avis
+              AvisPro
             </Link>
             <GoogleBadge />
           </div>
@@ -57,7 +57,7 @@ export default function CoachsPage() {
         </div>
 
         <div className="max-w-4xl mx-auto mb-16 bg-blue-50 p-8 rounded-lg">
-          <h2 className="text-3xl font-bold mb-6">La solution RéponsIA Avis</h2>
+          <h2 className="text-3xl font-bold mb-6">La solution AvisPro</h2>
           <ul className="list-disc list-inside space-y-2 text-gray-700">
             <li>Utilise le vocabulaire du secteur (séance, programme, objectifs, motivation)</li>
             <li>S'adapte au ton de votre coaching (bienveillant, motivant, professionnel)</li>

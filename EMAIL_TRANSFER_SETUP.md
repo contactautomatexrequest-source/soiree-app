@@ -1,4 +1,4 @@
-# Configuration Email Transfer pour RéponsIA Avis
+# Configuration Email Transfer pour AvisPro
 
 Ce guide explique comment configurer le système de réception d'emails via transfert (remplace OAuth Gmail).
 

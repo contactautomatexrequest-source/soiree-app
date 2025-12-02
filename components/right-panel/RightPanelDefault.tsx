@@ -8,9 +8,9 @@ function RightPanelDefaultComponent() {
     <div className="space-y-6">
       {/* Carte 1 : Bienvenue */}
       <Card className="bg-slate-900 border border-slate-700 rounded-2xl p-4 text-sm text-slate-200 space-y-2 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-50 mb-3">Bienvenue dans RéponsIA Avis</h3>
+        <h3 className="text-sm font-semibold text-slate-50 mb-3">Bienvenue dans AvisPro</h3>
         <p className="text-xs text-slate-300">
-          Réponds à tes avis Google en quelques secondes grâce à l'IA.
+          Tes avis Google gérés automatiquement. La protection automatique de ta réputation.
         </p>
       </Card>
 

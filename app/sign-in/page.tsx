@@ -50,7 +50,7 @@ export default function SignInPage() {
       <div className="w-full max-w-5xl bg-white text-neutral-900 rounded-2xl shadow-xl p-10 animate-fade-in-up">
         {/* Titre renforcé */}
         <h1 className="text-4xl md:text-5xl font-bold mb-3 text-center leading-tight">
-          Accède à ton tableau de bord de réponses automatiques
+          Accède à ton tableau de bord AvisPro
         </h1>
         
         {/* Sous-texte avec projection claire */}

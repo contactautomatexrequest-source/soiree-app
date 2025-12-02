@@ -182,7 +182,7 @@ export default function HistoriquePage() {
       {/* En-tête compact */}
       <div className="mb-6 flex-shrink-0">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-slate-50">Historique</h1>
+          <h1 className="text-2xl font-bold text-slate-50">Historique AvisPro</h1>
           <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/40">
             {totalAvis} avis traités
           </Badge>

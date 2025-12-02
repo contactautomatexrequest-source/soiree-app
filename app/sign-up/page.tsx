@@ -20,11 +20,13 @@ export default function SignUpPage() {
 
     try {
       const supabase = createClient();
+      // Forcer HTTPS pour l'URL de redirection
+      const origin = window.location.origin.replace(/^http:/, "https:");
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?type=signup`,
+          emailRedirectTo: `${origin}/auth/callback?type=signup`,
         },
       });
 
@@ -104,11 +106,13 @@ export default function SignUpPage() {
                     onClick={async () => {
                       try {
                         const supabase = createClient();
+                        // Forcer HTTPS pour l'URL de redirection
+                        const origin = window.location.origin.replace(/^http:/, "https:");
                         const { error: resendError } = await supabase.auth.resend({
                           type: "signup",
                           email: email,
                           options: {
-                            emailRedirectTo: `${window.location.origin}/auth/callback?type=signup`,
+                            emailRedirectTo: `${origin}/auth/callback?type=signup`,
                           },
                         });
                         

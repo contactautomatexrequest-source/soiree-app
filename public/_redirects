@@ -1,0 +1,5 @@
+# Redirections HTTP → HTTPS (prioritaires)
+http://avisprofr.com/* https://avisprofr.com/:splat 301!
+http://www.avisprofr.com/* https://avisprofr.com/:splat 301!
+https://www.avisprofr.com/* https://avisprofr.com/:splat 301!
+

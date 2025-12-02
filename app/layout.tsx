@@ -7,6 +7,10 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "AvisPro — La protection automatique de ta réputation.",
   description: "Tes avis Google gérés automatiquement. Réponses professionnelles en quelques secondes grâce à l'intelligence artificielle.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://avisprofr.com"),
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({

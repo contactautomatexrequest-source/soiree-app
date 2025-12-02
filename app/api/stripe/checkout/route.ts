@@ -45,13 +45,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Créer la session de checkout
+    // Forcer HTTPS pour les URLs de redirection
+    const origin = req.nextUrl.origin.replace(/^http:/, "https:");
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      success_url: `${req.nextUrl.origin}/app/facturation?success=true`,
-      cancel_url: `${req.nextUrl.origin}/app/facturation?canceled=true`,
+      success_url: `${origin}/app/facturation?success=true`,
+      cancel_url: `${origin}/app/facturation?canceled=true`,
       metadata: { user_id: user.id, plan },
     });
 

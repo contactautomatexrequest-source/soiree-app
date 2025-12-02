@@ -20,9 +20,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Aucun abonnement trouvé" }, { status: 404 });
     }
 
+    // Forcer HTTPS pour l'URL de retour
+    const origin = req.nextUrl.origin.replace(/^http:/, "https:");
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripe_customer_id,
-      return_url: `${req.nextUrl.origin}/app/facturation`,
+      return_url: `${origin}/app/facturation`,
     });
 
     return NextResponse.json({ url: session.url });

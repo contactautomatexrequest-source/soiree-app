@@ -3,6 +3,22 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   try {
+    // FORCER HTTPS : Rediriger toutes les requêtes HTTP vers HTTPS
+    const url = request.nextUrl.clone();
+    const hostname = request.headers.get("host") || "";
+    
+    // En production, forcer HTTPS (sauf localhost pour le dev)
+    // Netlify gère déjà cette redirection, mais on la force aussi au niveau app pour sécurité
+    if (
+      process.env.NODE_ENV === "production" &&
+      request.nextUrl.protocol === "http:" &&
+      !hostname.includes("localhost") &&
+      !hostname.includes("127.0.0.1")
+    ) {
+      url.protocol = "https:";
+      return NextResponse.redirect(url, 301); // Redirection permanente
+    }
+
     const pathname = request.nextUrl.pathname;
     
     // Routes publiques : on laisse passer sans traitement Supabase

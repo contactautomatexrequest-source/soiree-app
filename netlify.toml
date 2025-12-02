@@ -8,3 +8,7 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Désactiver Netlify Blobs pour éviter l'erreur d'upload
+[build.processing]
+  skip_processing = false
+

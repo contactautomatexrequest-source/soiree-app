@@ -21,6 +21,14 @@ function SignInForm() {
       // Nettoyer l'URL
       router.replace("/sign-in", { scroll: false });
     }
+    
+    // Vérifier s'il y a une erreur dans l'URL
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam));
+      // Nettoyer l'URL
+      router.replace("/sign-in", { scroll: false });
+    }
   }, [searchParams, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +44,20 @@ function SignInForm() {
       });
 
       if (signInError) {
-        setError(signInError.message || "Erreur de connexion. Vérifiez vos identifiants.");
+        // Traduire les messages d'erreur Supabase en français
+        let errorMessage = signInError.message || "Erreur de connexion. Vérifiez vos identifiants.";
+        
+        if (signInError.message.includes("Email not confirmed") || signInError.message.includes("email_not_confirmed")) {
+          errorMessage = "Ton email n'a pas encore été confirmé. Vérifie ta boîte de réception et clique sur le lien de confirmation.";
+        } else if (signInError.message.includes("Invalid login credentials") || signInError.message.includes("invalid_credentials")) {
+          errorMessage = "Email ou mot de passe incorrect. Vérifie tes identifiants.";
+        } else if (signInError.message.includes("Email rate limit exceeded")) {
+          errorMessage = "Trop de tentatives. Réessaye dans quelques minutes.";
+        } else if (signInError.message.includes("User not found")) {
+          errorMessage = "Aucun compte trouvé avec cet email. Crée un compte pour commencer.";
+        }
+        
+        setError(errorMessage);
         setLoading(false);
       } else {
         router.push("/app/valider");

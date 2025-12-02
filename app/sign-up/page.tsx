@@ -29,7 +29,20 @@ export default function SignUpPage() {
       });
 
       if (signUpError) {
-        setError(signUpError.message || "Erreur lors de la création du compte.");
+        // Traduire les messages d'erreur Supabase en français
+        let errorMessage = signUpError.message || "Erreur lors de la création du compte.";
+        
+        if (signUpError.message.includes("User already registered") || signUpError.message.includes("already_registered")) {
+          errorMessage = "Un compte existe déjà avec cet email. Connecte-toi ou réinitialise ton mot de passe.";
+        } else if (signUpError.message.includes("Password should be at least")) {
+          errorMessage = "Le mot de passe doit contenir au moins 6 caractères.";
+        } else if (signUpError.message.includes("Invalid email")) {
+          errorMessage = "L'adresse email n'est pas valide. Vérifie l'email saisi.";
+        } else if (signUpError.message.includes("Email rate limit exceeded")) {
+          errorMessage = "Trop de tentatives. Réessaye dans quelques minutes.";
+        }
+        
+        setError(errorMessage);
         setLoading(false);
       } else {
         // Afficher le message de vérification d'email
@@ -86,15 +99,44 @@ export default function SignUpPage() {
               </div>
               <div className="text-sm text-neutral-600 space-y-2">
                 <p>Tu n'as pas reçu l'email ?</p>
-                <button
-                  onClick={() => {
-                    setEmailSent(false);
-                    setError("");
-                  }}
-                  className="text-indigo-600 hover:text-indigo-700 font-medium underline"
-                >
-                  Réessayer avec un autre email
-                </button>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const supabase = createClient();
+                        const { error: resendError } = await supabase.auth.resend({
+                          type: "signup",
+                          email: email,
+                          options: {
+                            emailRedirectTo: `${window.location.origin}/auth/callback?type=signup`,
+                          },
+                        });
+                        
+                        if (resendError) {
+                          alert("Erreur : " + (resendError.message || "Impossible de renvoyer l'email"));
+                        } else {
+                          alert("Email de confirmation renvoyé ! Vérifie ta boîte de réception.");
+                        }
+                      } catch (err) {
+                        alert("Erreur lors du renvoi de l'email");
+                      }
+                    }}
+                    className="text-indigo-600 hover:text-indigo-700 font-medium underline"
+                  >
+                    Renvoyer l'email
+                  </button>
+                  <span className="text-neutral-400">•</span>
+                  <button
+                    onClick={() => {
+                      setEmailSent(false);
+                      setError("");
+                      setEmail("");
+                    }}
+                    className="text-indigo-600 hover:text-indigo-700 font-medium underline"
+                  >
+                    Utiliser un autre email
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -83,6 +83,11 @@ export async function middleware(request: NextRequest) {
       if (!user) {
         return NextResponse.redirect(new URL("/sign-in", request.url));
       }
+      
+      // Vérifier que l'email est confirmé (si email confirmations est activé)
+      // Note: Supabase peut retourner un user même si l'email n'est pas confirmé
+      // mais l'utilisateur ne pourra pas se connecter avec signInWithPassword
+      // Cette vérification est donc optionnelle mais peut être ajoutée si nécessaire
     }
 
     // Rediriger les utilisateurs connectés depuis /sign-in et /sign-up

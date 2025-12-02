@@ -29,6 +29,8 @@ export default function HistoriquePage() {
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<string>("free");
   const [copySuccessId, setCopySuccessId] = useState<string | null>(null);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [businessProfile, setBusinessProfile] = useState<any>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +52,18 @@ export default function HistoriquePage() {
       
       if (!cancelled) {
         setUserPlan(subscription?.plan || "free");
+      }
+
+      // Charger le profil business pour générer des réponses
+      const { data: profile } = await supabase
+        .from("business_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .limit(1)
+        .single();
+      
+      if (!cancelled && profile) {
+        setBusinessProfile(profile);
       }
 
       const { data } = await supabase
@@ -130,6 +144,67 @@ export default function HistoriquePage() {
     await navigator.clipboard.writeText(review.ai_responses[0].reponse_generee);
     setCopySuccessId(review.id);
     setTimeout(() => setCopySuccessId(null), 2000);
+  };
+
+  const handleGenerateResponse = async (review: Review) => {
+    if (!businessProfile) {
+      alert("Profil établissement requis. Veuillez compléter votre profil.");
+      return;
+    }
+
+    setGeneratingId(review.id);
+    try {
+      const response = await fetch("/api/generate-response", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contenu_avis: review.contenu_avis,
+          note: review.note || undefined,
+          business_id: businessProfile.id,
+          review_id: review.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        if (error.error === "Quota atteint") {
+          alert(`Vous avez atteint votre limite de 5 réponses gratuites ce mois. Passez au plan Pro pour des réponses illimitées !`);
+        } else {
+          alert(`Erreur : ${error.error || error.message || "Impossible de générer la réponse"}`);
+        }
+        setGeneratingId(null);
+        return;
+      }
+
+      const data = await response.json();
+      
+      // Recharger les avis pour afficher la nouvelle réponse
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: updatedReviews } = await supabase
+          .from("reviews")
+          .select(`
+            *,
+            ai_responses (
+              reponse_generee,
+              ton_utilise
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(100);
+        
+        if (updatedReviews) {
+          setReviews(updatedReviews as Review[]);
+        }
+      }
+    } catch (error) {
+      console.error("Error generating response:", error);
+      alert("Erreur lors de la génération de la réponse");
+    } finally {
+      setGeneratingId(null);
+    }
   };
 
   const truncateText = (text: string, maxLength: number = 120): string => {
@@ -266,23 +341,35 @@ export default function HistoriquePage() {
                     {truncateText(review.contenu_avis, 120)}
                   </p>
 
-                  {/* Ligne 3 : Date + Bouton */}
-                  <div className="flex items-center justify-between flex-shrink-0">
+                  {/* Ligne 3 : Date + Boutons */}
+                  <div className="flex items-center justify-between flex-shrink-0 gap-2">
                     <span className="text-xs text-slate-400">{dateStr}</span>
-                    {hasResponse && (
-                      <Button
-                        onClick={() => handleCopy(review)}
-                        variant="outline"
-                        size="sm"
-                        className={`h-7 text-xs px-3 ${
-                          copySuccessId === review.id
-                            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                            : "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800/50"
-                        }`}
-                      >
-                        {copySuccessId === review.id ? "✓ Copié" : "Copier la réponse"}
-                      </Button>
-                    )}
+                    <div className="flex gap-2">
+                      {hasResponse ? (
+                        <Button
+                          onClick={() => handleCopy(review)}
+                          variant="outline"
+                          size="sm"
+                          className={`h-7 text-xs px-3 ${
+                            copySuccessId === review.id
+                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                              : "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800/50"
+                          }`}
+                        >
+                          {copySuccessId === review.id ? "✓ Copié" : "Copier la réponse"}
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleGenerateResponse(review)}
+                          variant="outline"
+                          size="sm"
+                          disabled={generatingId === review.id}
+                          className="h-7 text-xs px-3 border-indigo-500/40 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 disabled:opacity-50"
+                        >
+                          {generatingId === review.id ? "Génération..." : "Générer une réponse"}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </Card>
               );
@@ -320,31 +407,44 @@ export default function HistoriquePage() {
             </Card>
           )}
 
-          {/* Indicateurs verrouillés pour plan gratuit */}
+          {/* Message pour plan gratuit avec incitation Pro */}
           {!isPaidPlan(userPlan) && (
-            <Card className="bg-gradient-to-br from-slate-900/95 to-slate-950/95 border border-slate-800/60 rounded-xl shadow-premium p-4 opacity-60">
-              <h3 className="text-sm font-bold text-slate-400 mb-3 flex items-center gap-2">
-                <span>🔒</span>
-                <span>Protection active</span>
+            <Card className="bg-gradient-to-br from-indigo-500/10 to-slate-950/95 border border-indigo-500/30 rounded-xl shadow-premium p-4">
+              <h3 className="text-sm font-bold text-indigo-300 mb-3 flex items-center gap-2">
+                <span>⭐</span>
+                <span>Passe au plan Pro</span>
               </h3>
-              <div className="space-y-2 text-xs text-slate-500">
-                <div className="flex items-center justify-between">
-                  <span>Avis négatifs neutralisés</span>
-                  <span>🔒</span>
+              <div className="space-y-3 text-xs text-slate-300">
+                <p className="leading-relaxed">
+                  En version gratuite, tu peux générer jusqu'à <strong className="text-indigo-300">5 réponses IA par mois</strong>.
+                </p>
+                <div className="bg-slate-900/50 rounded-lg p-3 space-y-2 border border-slate-700/50">
+                  <p className="font-semibold text-indigo-300">Avec le plan Pro :</p>
+                  <ul className="space-y-1 text-slate-400">
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-400">✓</span>
+                      <span>Les avis arrivent <strong>automatiquement</strong> depuis Google</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-400">✓</span>
+                      <span>L'IA répond <strong>automatiquement</strong> à tous tes avis</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-400">✓</span>
+                      <span>Réponses <strong>illimitées</strong> chaque mois</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-400">✓</span>
+                      <span>Publication automatique sur Google</span>
+                    </li>
+                  </ul>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>Temps économisé ce mois</span>
-                  <span>🔒</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Taux de réponse global</span>
-                  <span>🔒</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Aucun avis sans réponse</span>
-                  <span>🔒</span>
-                </div>
-                <p className="text-xs text-slate-500 italic mt-2">Disponible uniquement en plan payant</p>
+                <a
+                  href="/app/facturation"
+                  className="block w-full text-center bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:scale-[1.02]"
+                >
+                  Découvrir le plan Pro
+                </a>
               </div>
             </Card>
           )}

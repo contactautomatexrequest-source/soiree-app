@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = requestUrl.searchParams.get("next") || "/app/valider";
+  const type = requestUrl.searchParams.get("type"); // "signup" pour confirmation d'email
+  const next = requestUrl.searchParams.get("next");
 
   if (code) {
     const cookieStore = await cookies();
@@ -30,11 +31,24 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
-      // Redirection vers la page demandée ou le dashboard
-      return NextResponse.redirect(new URL(next, request.url));
+    if (!error && data.user) {
+      // Si c'est une confirmation d'email (type=signup) ou si l'utilisateur vient d'être confirmé
+      // Rediriger vers la page de connexion avec un message de succès
+      if (type === "signup" || type === "email") {
+        return NextResponse.redirect(
+          new URL("/sign-in?account_created=true", request.url)
+        );
+      }
+
+      // Si un paramètre "next" est fourni, l'utiliser
+      if (next) {
+        return NextResponse.redirect(new URL(next, request.url));
+      }
+
+      // Sinon, rediriger vers le dashboard
+      return NextResponse.redirect(new URL("/app/valider", request.url));
     }
   }
 

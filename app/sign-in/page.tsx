@@ -1,16 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [accountCreated, setAccountCreated] = useState(false);
+
+  useEffect(() => {
+    // Vérifier si l'utilisateur vient de créer son compte
+    if (searchParams.get("account_created") === "true") {
+      setAccountCreated(true);
+      // Nettoyer l'URL
+      router.replace("/sign-in", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +68,36 @@ export default function SignInPage() {
         <p className="text-lg text-neutral-700 mb-8 text-center max-w-2xl mx-auto">
           Retrouve tes avis, tes réponses générées et l'état de ta protection en un clic.
         </p>
+
+        {/* Message de succès après confirmation d'email */}
+        {accountCreated && (
+          <div className="mb-6 p-5 bg-emerald-50 border-2 border-emerald-200 rounded-lg animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-emerald-900 mb-1">
+                  Compte créé avec succès !
+                </h3>
+                <p className="text-sm text-emerald-800">
+                  Ton email a été vérifié. Tu peux maintenant te connecter avec tes identifiants pour accéder à ton tableau de bord AvisPro.
+                </p>
+              </div>
+              <button
+                onClick={() => setAccountCreated(false)}
+                className="flex-shrink-0 text-emerald-600 hover:text-emerald-800"
+                aria-label="Fermer"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">

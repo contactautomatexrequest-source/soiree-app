@@ -17,7 +17,14 @@
 
 [[redirects]]
   from = "http://www.avisprofr.com/*"
-  to = "https://www.avisprofr.com/:splat"
+  to = "https://avisprofr.com/:splat"
+  status = 301
+  force = true
+
+# Redirection www → non-www (canonical)
+[[redirects]]
+  from = "https://www.avisprofr.com/*"
+  to = "https://avisprofr.com/:splat"
   status = 301
   force = true
 

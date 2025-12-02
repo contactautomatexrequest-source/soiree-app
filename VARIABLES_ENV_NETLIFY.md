@@ -37,7 +37,7 @@ STRIPE_PRICE_ID_AGENCE=price_xxx
 
 **⚠️ Important :** Configurez le webhook Stripe pour pointer vers :
 ```
-https://avispro-app.netlify.app/api/stripe/webhook
+https://avisprofr.com/api/stripe/webhook
 ```
 
 ---

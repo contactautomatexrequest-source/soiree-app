@@ -11,6 +11,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,18 +20,21 @@ export default function SignUpPage() {
 
     try {
       const supabase = createClient();
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/app/valider`,
+        },
       });
 
       if (signUpError) {
         setError(signUpError.message || "Erreur lors de la création du compte.");
         setLoading(false);
       } else {
-        // Redirection vers le générateur de réponse
-        router.push("/app/valider");
-        router.refresh();
+        // Afficher le message de vérification d'email
+        setEmailSent(true);
+        setLoading(false);
       }
     } catch (err: any) {
       console.error("Erreur lors de la création du compte:", err);
@@ -59,14 +63,51 @@ export default function SignUpPage() {
           Dès l'inscription, l'IA commence à préparer tes réponses aux avis Google automatiquement.
         </p>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-            {error}
+        {emailSent ? (
+          <div className="text-center py-8">
+            <div className="mb-6">
+              <div className="mx-auto w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-neutral-900 mb-3">
+                Vérifie ton email pour continuer
+              </h2>
+              <p className="text-neutral-700 mb-6 max-w-md mx-auto">
+                Nous avons envoyé un lien de confirmation à <strong className="text-neutral-900">{email}</strong>
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
+                <p className="text-sm text-blue-800">
+                  <strong className="font-semibold">📧 Vérifie ta boîte de réception</strong>
+                  <br />
+                  Clique sur le lien dans l'email pour activer ton compte et commencer à utiliser AvisPro.
+                </p>
+              </div>
+              <div className="text-sm text-neutral-600 space-y-2">
+                <p>Tu n'as pas reçu l'email ?</p>
+                <button
+                  onClick={() => {
+                    setEmailSent(false);
+                    setError("");
+                  }}
+                  className="text-indigo-600 hover:text-indigo-700 font-medium underline"
+                >
+                  Réessayer avec un autre email
+                </button>
+              </div>
+            </div>
           </div>
-        )}
+        ) : (
+          <>
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                {error}
+              </div>
+            )}
 
-        {/* Layout en 2 colonnes : Formulaire + Bénéfices */}
-        <div className="grid md:grid-cols-2 gap-8 items-start">
+            {/* Layout en 2 colonnes : Formulaire + Bénéfices */}
+            <div className="grid md:grid-cols-2 gap-8 items-start">
           {/* Colonne gauche : Formulaire */}
           <div>
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -154,6 +195,8 @@ export default function SignUpPage() {
             </div>
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

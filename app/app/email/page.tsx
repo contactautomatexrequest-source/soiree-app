@@ -16,7 +16,7 @@ export default function EmailPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<string>("free");
-  const [emailAlias, setEmailAlias] = useState<string | null>(null);
+  const [incomingAlias, setIncomingAlias] = useState<string | null>(null);
   const [reviewEmailAddress, setReviewEmailAddress] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -58,40 +58,25 @@ export default function EmailPage() {
 
       const { data } = await supabase
         .from("business_profiles")
-        .select("id, email_alias")
+        .select("id, incoming_alias, nom_etablissement")
         .eq("user_id", user.id)
         .limit(1)
         .maybeSingle();
 
       if (!cancelled) {
         if (data) {
-          if (!data.email_alias) {
-            try {
-              const { generateEmailAlias } = await import("@/lib/email/alias");
-              const { buildReviewEmailAddress } = await import("@/lib/email/alias");
-              const newAlias = generateEmailAlias(data.id);
-              const emailAddress = buildReviewEmailAddress(newAlias);
-              
-              const { error: updateError } = await supabase
-                .from("business_profiles")
-                .update({ email_alias: newAlias })
-                .eq("id", data.id);
-              
-              if (!updateError) {
-                setEmailAlias(newAlias);
-                setReviewEmailAddress(emailAddress);
-              }
-            } catch (err) {
-              console.error("Error generating email alias:", err);
-            }
-          } else {
+          if (data.incoming_alias) {
             try {
               const { buildReviewEmailAddress } = await import("@/lib/email/alias");
-              setEmailAlias(data.email_alias);
-              setReviewEmailAddress(buildReviewEmailAddress(data.email_alias));
+              setIncomingAlias(data.incoming_alias);
+              setReviewEmailAddress(buildReviewEmailAddress(data.incoming_alias));
             } catch (err) {
               console.error("Error building email address:", err);
             }
+          } else {
+            // Si aucun alias n'est défini, afficher un message indiquant qu'il faut le configurer
+            setIncomingAlias(null);
+            setReviewEmailAddress(null);
           }
         }
         setLoading(false);

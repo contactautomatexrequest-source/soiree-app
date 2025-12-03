@@ -30,11 +30,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true, message: "No alias found" });
     }
 
-    // Trouver l'établissement correspondant
+    // Trouver l'établissement correspondant via incoming_alias
+    // Cette recherche est sécurisée : seul l'établissement avec cet alias recevra l'avis
     const { data: businessProfile, error: businessError } = await supabaseAdmin
       .from("business_profiles")
       .select("id, user_id")
-      .eq("email_alias", alias)
+      .eq("incoming_alias", alias)
       .single();
 
     if (businessError || !businessProfile) {

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS business_profiles (
   nom_etablissement TEXT NOT NULL,
   ville TEXT NOT NULL,
   ton_marque ton_marque_type NOT NULL DEFAULT 'chaleureux',
-  email_alias TEXT UNIQUE, -- Identifiant unique pour l'adresse email (ex: "abc123")
+  incoming_alias TEXT UNIQUE, -- Identifiant unique pour l'adresse email entrante (ex: "abc123")
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, nom_etablissement, ville)
@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS gmail_credentials (
 
 -- Index pour améliorer les performances
 CREATE INDEX IF NOT EXISTS idx_business_profiles_user_id ON business_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_business_profiles_incoming_alias ON business_profiles(incoming_alias) WHERE incoming_alias IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews(user_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_business_id ON reviews(business_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at DESC);
@@ -181,17 +182,46 @@ USING (user_id = auth.uid());
 CREATE POLICY "Users can insert own reviews"
 ON reviews FOR INSERT
 TO authenticated
-WITH CHECK (user_id = auth.uid());
+WITH CHECK (
+  user_id = auth.uid() 
+  AND EXISTS (
+    SELECT 1 FROM business_profiles
+    WHERE business_profiles.id = reviews.business_id
+    AND business_profiles.user_id = auth.uid()
+  )
+);
 
 CREATE POLICY "Users can update own reviews"
 ON reviews FOR UPDATE
 TO authenticated
-USING (user_id = auth.uid());
+USING (
+  user_id = auth.uid() 
+  AND EXISTS (
+    SELECT 1 FROM business_profiles
+    WHERE business_profiles.id = reviews.business_id
+    AND business_profiles.user_id = auth.uid()
+  )
+)
+WITH CHECK (
+  user_id = auth.uid() 
+  AND EXISTS (
+    SELECT 1 FROM business_profiles
+    WHERE business_profiles.id = reviews.business_id
+    AND business_profiles.user_id = auth.uid()
+  )
+);
 
 CREATE POLICY "Users can delete own reviews"
 ON reviews FOR DELETE
 TO authenticated
-USING (user_id = auth.uid());
+USING (
+  user_id = auth.uid() 
+  AND EXISTS (
+    SELECT 1 FROM business_profiles
+    WHERE business_profiles.id = reviews.business_id
+    AND business_profiles.user_id = auth.uid()
+  )
+);
 
 -- Policies pour ai_responses (via reviews)
 CREATE POLICY "Users can view own ai responses"

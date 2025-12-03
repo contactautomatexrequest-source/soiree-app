@@ -173,11 +173,18 @@ ON business_profiles FOR DELETE
 TO authenticated
 USING (user_id = auth.uid());
 
--- Policies pour reviews
+-- Policies pour reviews (renforcées pour garantir l'isolation via business_id)
 CREATE POLICY "Users can view own reviews"
 ON reviews FOR SELECT
 TO authenticated
-USING (user_id = auth.uid());
+USING (
+  user_id = auth.uid() 
+  AND EXISTS (
+    SELECT 1 FROM business_profiles
+    WHERE business_profiles.id = reviews.business_id
+    AND business_profiles.user_id = auth.uid()
+  )
+);
 
 CREATE POLICY "Users can insert own reviews"
 ON reviews FOR INSERT

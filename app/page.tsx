@@ -39,32 +39,29 @@ export default function HomePage() {
           <div className="max-w-4xl mx-auto bg-white text-neutral-900 rounded-2xl shadow-xl p-10 animate-fade-in-up">
             <GoogleGradientBar className="max-w-full mx-auto mb-8 animate-fade-in" />
             
-            {/* Titre orienté perte client */}
-            <h2 className="text-5xl md:text-6xl font-bold mb-6 text-center leading-tight">
-              Ne perds plus jamais un client à cause d'un avis non répondu
-            </h2>
+            {/* Titre principal - Orienté valeur directe */}
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 text-center leading-tight">
+              Chaque avis reçoit une réponse professionnelle, automatiquement.
+            </h1>
             
-            {/* Sous-titre avec slogan AvisPro */}
-            <p className="text-xl text-neutral-700 mb-4 text-center max-w-2xl mx-auto font-semibold">
-              AvisPro — La protection automatique de ta réputation.
-            </p>
-            <p className="text-lg text-neutral-600 mb-8 text-center max-w-2xl mx-auto">
-              Tes avis Google gérés automatiquement. L'IA répond à tous tes avis en moins de 30 secondes.
+            {/* Sous-titre explicatif */}
+            <p className="text-lg text-neutral-600 mb-6 text-center max-w-2xl mx-auto">
+              AvisPro analyse, rédige et publie automatiquement des réponses adaptées à ton métier.
             </p>
 
-            {/* 3 bénéfices visibles immédiatement - Orientés perte évitée */}
-            <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
-              <div className="flex items-center gap-2 text-neutral-700">
-                <span className="text-xl text-emerald-500">⚡</span>
-                <span className="font-medium">Tu ne laisses plus jamais un client sans réponse</span>
+            {/* Micro-badges de preuve discrets */}
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
+              <div className="flex items-center gap-2 text-sm text-neutral-500">
+                <span className="text-emerald-500">✓</span>
+                <span>Réponses automatiques</span>
               </div>
-              <div className="flex items-center gap-2 text-neutral-700">
-                <span className="text-xl text-emerald-500">🤖</span>
-                <span className="font-medium">Tu ne touches à rien</span>
+              <div className="flex items-center gap-2 text-sm text-neutral-500">
+                <span className="text-emerald-500">✓</span>
+                <span>Temps réel</span>
               </div>
-              <div className="flex items-center gap-2 text-neutral-700">
-                <span className="text-xl text-emerald-500">🛡️</span>
-                <span className="font-medium">Ta réputation travaille pour toi 24/7</span>
+              <div className="flex items-center gap-2 text-sm text-neutral-500">
+                <span className="text-emerald-500">✓</span>
+                <span>Image protégée</span>
               </div>
             </div>
 
@@ -80,8 +77,13 @@ export default function HomePage() {
               </Link>
               
               {/* Micro-réassurance sous le bouton */}
-              <p className="text-center text-sm text-neutral-500 mt-3 mb-4">
-                Sans carte bancaire • Résultat immédiat
+              <p className="text-center text-sm text-neutral-500 mt-3 mb-2">
+                Activation en moins de 2 minutes • Sans engagement
+              </p>
+
+              {/* Indicateur discret Pro */}
+              <p className="text-center text-xs text-neutral-400 mt-1 mb-4">
+                Automatisations complètes disponibles dans les plans payants
               </p>
 
               {/* Lien secondaire - Visuellement secondaire */}

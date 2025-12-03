@@ -24,7 +24,25 @@ export async function POST(req: NextRequest) {
     const messageId = emailData.message_id || emailData.id || "";
 
     // Extraire l'alias depuis l'adresse destinataire
-    const alias = extractAliasFromEmail(to);
+    // Format attendu : avis-{id}@avisprofr.com ou n'importe quoi@avisprofr.com (catch-all)
+    // On extrait la partie avant @ pour trouver l'alias
+    let alias: string | null = null;
+    
+    // Si l'email est sur le domaine avisprofr.com, extraire la partie locale
+    if (to.includes('@avisprofr.com')) {
+      const localPart = to.split('@')[0];
+      // Si c'est au format avis-{id}, utiliser tel quel
+      if (localPart.startsWith('avis-')) {
+        alias = localPart;
+      } else {
+        // Sinon, essayer d'extraire avec la fonction existante (pour compatibilité)
+        alias = extractAliasFromEmail(to);
+      }
+    } else {
+      // Format ancien avec avis+{hash}@domain.com
+      alias = extractAliasFromEmail(to);
+    }
+    
     if (!alias) {
       console.warn(`No alias found in email to: ${to}`);
       return NextResponse.json({ received: true, message: "No alias found" });
@@ -32,6 +50,7 @@ export async function POST(req: NextRequest) {
 
     // Trouver l'établissement correspondant via incoming_alias
     // Cette recherche est sécurisée : seul l'établissement avec cet alias recevra l'avis
+    // Le mapping se fait UNIQUEMENT via incoming_alias, jamais via le contenu de l'email
     const { data: businessProfile, error: businessError } = await supabaseAdmin
       .from("business_profiles")
       .select("id, user_id")

@@ -136,7 +136,7 @@ export default function ConnexionAvisPage() {
                           </p>
                           <div className="flex items-center gap-3">
                             <code className="flex-1 px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-indigo-300 font-mono break-all">
-                              {emailAddress}
+                              {emailAddress || `${business.incoming_alias}@avisprofr.com`}
                             </code>
                             <Button
                               onClick={() => handleCopyEmail(business.incoming_alias!, business.id)}
@@ -160,7 +160,7 @@ export default function ConnexionAvisPage() {
                               Dans Google Business, va dans les paramètres de notifications
                             </li>
                             <li>
-                              Configure un transfert d'email vers : <code className="text-indigo-300 font-mono">{emailAddress}</code>
+                              Configure un transfert d'email vers : <code className="text-indigo-300 font-mono">{emailAddress || `${business.incoming_alias}@avisprofr.com`}</code>
                             </li>
                             <li>
                               Active les notifications pour tous les nouveaux avis
@@ -174,11 +174,10 @@ export default function ConnexionAvisPage() {
                     ) : (
                       <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
                         <p className="text-sm text-amber-300 mb-2">
-                          ⚠️ Alias email non configuré
+                          ⚠️ Alias email en cours de génération
                         </p>
                         <p className="text-xs text-slate-400">
-                          L'alias email pour cet établissement n'a pas encore été configuré. 
-                          Contacte le support pour activer la réception automatique des avis.
+                          L'alias email est en cours de génération. Recharge la page dans quelques instants.
                         </p>
                       </div>
                     )}

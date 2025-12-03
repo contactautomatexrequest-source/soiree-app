@@ -51,13 +51,19 @@ export default function OnboardingPage() {
         return;
       }
 
-      const { error } = await supabase.from("business_profiles").insert({
-        user_id: user.id,
-        metier,
-        nom_etablissement: nomEtablissement,
-        ville,
-        ton_marque: tonMarque,
-      });
+      // Insérer l'établissement (le trigger SQL générera automatiquement incoming_alias)
+      const { data: newBusiness, error } = await supabase
+        .from("business_profiles")
+        .insert({
+          user_id: user.id,
+          metier,
+          nom_etablissement: nomEtablissement,
+          ville,
+          ton_marque: tonMarque,
+          // incoming_alias sera généré automatiquement par le trigger SQL
+        })
+        .select("id")
+        .single();
 
       if (error) {
         setError(error.message);

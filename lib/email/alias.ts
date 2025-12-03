@@ -17,7 +17,7 @@ export function generateEmailAlias(businessId: string): string {
  * Construit l'adresse email complète à partir de l'alias
  */
 export function buildReviewEmailAddress(alias: string, domain?: string): string {
-  const emailDomain = domain || process.env.EMAIL_DOMAIN || "avis.reponsia.fr";
+  const emailDomain = domain || process.env.EMAIL_DOMAIN || "avisprofr.com";
   return `avis+${alias}@${emailDomain}`;
 }
 

@@ -221,6 +221,18 @@ export default function SignUpPage() {
                 Se connecter
               </Link>
             </p>
+
+            {/* Mentions légales */}
+            <p className="mt-4 text-center text-xs text-neutral-400">
+              En créant un compte, vous acceptez nos{" "}
+              <Link href="/cgu" className="text-indigo-600 hover:underline">
+                CGU
+              </Link>
+              {" "}et notre{" "}
+              <Link href="/confidentialite" className="text-indigo-600 hover:underline">
+                Politique de confidentialité
+              </Link>
+            </p>
           </div>
 
           {/* Colonne droite : Bénéfices */}

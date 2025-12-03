@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     // Envoyer un email de test
     await resend.emails.send({
-      from: process.env.EMAIL_FROM || "noreply@reponsia.fr",
+      from: process.env.EMAIL_FROM || "no-reply@avisprofr.com",
       to: email,
       subject: "Test - AvisPro",
       html: `

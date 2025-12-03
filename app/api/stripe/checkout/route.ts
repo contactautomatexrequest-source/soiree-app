@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       const customer = await stripe.customers.create({
         email: user.email!,
         metadata: { user_id: user.id },
+        preferred_locales: ["fr"],
       });
       customerId = customer.id;
 
@@ -55,6 +56,10 @@ export async function POST(req: NextRequest) {
       success_url: `${origin}/app/facturation?success=true`,
       cancel_url: `${origin}/app/facturation?canceled=true`,
       metadata: { user_id: user.id, plan },
+      customer_email: user.email || undefined,
+      invoice_creation: {
+        enabled: true,
+      },
     });
 
     return NextResponse.json({ url: session.url });

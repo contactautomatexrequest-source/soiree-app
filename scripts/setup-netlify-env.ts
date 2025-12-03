@@ -78,9 +78,9 @@ const ENV_VARS: EnvVar[] = [
   },
   {
     key: "EMAIL_FROM",
-    description: "Email expéditeur (ex: noreply@avisprofr.com)",
+    description: "Email expéditeur (ex: no-reply@avisprofr.com)",
     required: true,
-    example: "noreply@avisprofr.com",
+    example: "no-reply@avisprofr.com",
   },
   {
     key: "EMAIL_DOMAIN",

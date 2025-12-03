@@ -57,7 +57,7 @@ OPENAI_API_KEY=sk-proj-...
 
 ```
 RESEND_API_KEY=re_...
-EMAIL_FROM=noreply@avisprofr.com
+EMAIL_FROM=no-reply@avisprofr.com
 EMAIL_DOMAIN=avisprofr.com
 ```
 

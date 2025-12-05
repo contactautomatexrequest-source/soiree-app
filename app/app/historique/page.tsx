@@ -31,6 +31,14 @@ export default function HistoriquePage() {
   const [copySuccessId, setCopySuccessId] = useState<string | null>(null);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [businessProfile, setBusinessProfile] = useState<any>(null);
+  const [showAddReviewModal, setShowAddReviewModal] = useState(false);
+  const [newReview, setNewReview] = useState({
+    contenu_avis: "",
+    note: 5,
+    author_name: "",
+  });
+  const [creatingReview, setCreatingReview] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState<{ remaining: number; limit: number; used: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -167,8 +175,10 @@ export default function HistoriquePage() {
 
       if (!response.ok) {
         const error = await response.json();
-        if (error.error === "Quota atteint") {
-          alert(`Vous avez atteint votre limite de 5 réponses gratuites ce mois. Passez au plan Pro pour des réponses illimitées !`);
+        if (error.error === "Plan gratuit") {
+          alert("La génération automatique de réponse n'est pas disponible avec le plan gratuit. Passez au plan Pro pour activer cette fonctionnalité !");
+        } else if (error.error === "Quota atteint") {
+          alert(`Vous avez atteint votre limite de ${error.limit} réponses ce mois. Passez au plan Pro pour des réponses illimitées !`);
         } else {
           alert(`Erreur : ${error.error || error.message || "Impossible de générer la réponse"}`);
         }
@@ -204,6 +214,81 @@ export default function HistoriquePage() {
       alert("Erreur lors de la génération de la réponse");
     } finally {
       setGeneratingId(null);
+    }
+  };
+
+  const handleCreateReview = async () => {
+    if (!businessProfile) {
+      alert("Profil établissement requis. Veuillez compléter votre profil.");
+      return;
+    }
+
+    if (!newReview.contenu_avis.trim()) {
+      alert("Le contenu de l'avis est requis");
+      return;
+    }
+
+    setCreatingReview(true);
+    try {
+      const response = await fetch("/api/reviews/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          business_id: businessProfile.id,
+          contenu_avis: newReview.contenu_avis,
+          note: newReview.note,
+          author_name: newReview.author_name || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.message || error.error || "Erreur lors de la création de l'avis");
+        setCreatingReview(false);
+        return;
+      }
+
+      const data = await response.json();
+      
+      // Mettre à jour le quota
+      if (data.quota) {
+        setQuotaInfo(data.quota);
+      }
+
+      // Réinitialiser le formulaire
+      setNewReview({
+        contenu_avis: "",
+        note: 5,
+        author_name: "",
+      });
+      setShowAddReviewModal(false);
+
+      // Recharger les avis
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: updatedReviews } = await supabase
+          .from("reviews")
+          .select(`
+            *,
+            ai_responses (
+              reponse_generee,
+              ton_utilise
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(100);
+        
+        if (updatedReviews) {
+          setReviews(updatedReviews as Review[]);
+        }
+      }
+    } catch (error) {
+      console.error("Error creating review:", error);
+      alert("Erreur lors de la création de l'avis");
+    } finally {
+      setCreatingReview(false);
     }
   };
 
@@ -258,9 +343,17 @@ export default function HistoriquePage() {
       <div className="mb-6 flex-shrink-0">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold text-slate-50">Historique AvisPro</h1>
-          <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/40">
-            {totalAvis} avis traités
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/40">
+              {totalAvis} avis traités
+            </Badge>
+            <button
+              onClick={() => setShowAddReviewModal(true)}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              + Ajouter un avis
+            </button>
+          </div>
         </div>
         <p className="text-sm text-slate-400">
           Toutes tes réponses générées, prêtes à être réutilisées en 1 clic.
@@ -510,6 +603,93 @@ export default function HistoriquePage() {
           </Card>
         </div>
       </div>
+
+      {/* Modal pour ajouter un avis */}
+      {showAddReviewModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="bg-gradient-to-br from-slate-900/95 to-slate-950/95 border border-slate-700/60 rounded-xl shadow-premium p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-slate-50">Ajouter un avis manuel</h2>
+              <button
+                onClick={() => setShowAddReviewModal(false)}
+                className="text-slate-400 hover:text-slate-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            {userPlan === "free" && quotaInfo && (
+              <div className="mb-4 p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-lg">
+                <p className="text-sm text-indigo-300">
+                  Plan gratuit : {quotaInfo.remaining} avis manuels restants ce mois (sur {quotaInfo.limit})
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Note (1-5)
+                </label>
+                <select
+                  value={newReview.note}
+                  onChange={(e) => setNewReview({ ...newReview, note: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200"
+                >
+                  <option value={5}>5 ⭐</option>
+                  <option value={4}>4 ⭐</option>
+                  <option value={3}>3 ⭐</option>
+                  <option value={2}>2 ⭐</option>
+                  <option value={1}>1 ⭐</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Contenu de l'avis *
+                </label>
+                <textarea
+                  value={newReview.contenu_avis}
+                  onChange={(e) => setNewReview({ ...newReview, contenu_avis: e.target.value })}
+                  placeholder="Saisis le contenu de l'avis..."
+                  rows={4}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Nom de l'auteur (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={newReview.author_name}
+                  onChange={(e) => setNewReview({ ...newReview, author_name: e.target.value })}
+                  placeholder="Nom du client"
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  onClick={handleCreateReview}
+                  disabled={creatingReview || !newReview.contenu_avis.trim()}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {creatingReview ? "Création..." : "Créer l'avis"}
+                </Button>
+                <Button
+                  onClick={() => setShowAddReviewModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

@@ -100,6 +100,23 @@ export async function POST(req: NextRequest) {
     // LOG 4: Établissement trouvé
     console.log(`[EMAIL_WEBHOOK] Establishment found - ID: ${establishmentId}, UserID: ${userId}, Business: ${businessProfile.nom_etablissement}`);
 
+    // Vérifier que l'utilisateur a un plan payant (import automatique interdit pour free)
+    const { data: subscription } = await supabaseAdmin
+      .from("subscriptions")
+      .select("plan")
+      .eq("user_id", userId)
+      .single();
+
+    const plan = subscription?.plan || "free";
+    if (plan === "free") {
+      console.log(`[EMAIL_WEBHOOK] Import automatique refusé pour plan free - UserID: ${userId}`);
+      return NextResponse.json({
+        received: true,
+        message: "Import automatique non disponible avec le plan gratuit",
+        logged: true,
+      });
+    }
+
     // Vérification de sécurité : s'assurer que l'établissement appartient bien à l'utilisateur
     // (double vérification même si resolveEstablishmentFromAlias le fait déjà)
     const { data: ownershipCheck } = await supabaseAdmin

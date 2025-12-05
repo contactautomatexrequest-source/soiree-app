@@ -29,6 +29,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Vérifier que l'utilisateur a un plan payant (import automatique interdit pour free)
+    const { data: subscription } = await supabaseAdmin
+      .from("subscriptions")
+      .select("plan")
+      .eq("user_id", user.id)
+      .single();
+
+    const plan = subscription?.plan || "free";
+    if (plan === "free") {
+      return NextResponse.json(
+        {
+          error: "Plan gratuit",
+          message: "L'import automatique depuis Google n'est pas disponible avec le plan gratuit. Passez au plan Pro pour activer cette fonctionnalité !",
+        },
+        { status: 403 }
+      );
+    }
+
     // Récupérer le profil Google Business de l'utilisateur
     const { data: googleProfile, error: profileError } = await supabaseAdmin
       .from("google_business_profiles")

@@ -24,7 +24,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Vérification quota
+    // Vérifier que l'utilisateur peut utiliser la génération automatique
+    // Plan free : interdit (pas de génération automatique)
+    const { data: subscription } = await supabaseAdmin
+      .from("subscriptions")
+      .select("plan")
+      .eq("user_id", user.id)
+      .single();
+
+    const plan = subscription?.plan || "free";
+    if (plan === "free") {
+      return NextResponse.json(
+        {
+          error: "Plan gratuit",
+          message: "La génération automatique de réponse n'est pas disponible avec le plan gratuit. Passez au plan Pro pour activer cette fonctionnalité !",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Vérification quota pour les plans payants
     const quota = await checkQuota(user.id);
     if (!quota.allowed) {
       return NextResponse.json(

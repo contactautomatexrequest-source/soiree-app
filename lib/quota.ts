@@ -1,12 +1,22 @@
 import { supabaseAdmin } from "./supabase/admin";
 
-const QUOTA_LIMITS = {
-  free: 5,
+/**
+ * Limites de réponses IA générées par plan
+ * NOTE: Le plan free n'a PAS accès à la génération automatique de réponse
+ * Cette fonction est utilisée uniquement pour les plans payants
+ */
+const AI_RESPONSE_LIMITS = {
+  free: 0, // Plan free : pas de génération automatique
   pro: 10000, // Quasi illimité avec garde-fou technique
   business: 10000,
   agence: 10000,
 };
 
+/**
+ * Vérifie le quota pour la génération de réponses IA
+ * Plan free : toujours refusé (pas de génération automatique)
+ * Plans payants : quasi illimité
+ */
 export async function checkQuota(userId: string): Promise<{
   allowed: boolean;
   remaining: number;
@@ -20,9 +30,18 @@ export async function checkQuota(userId: string): Promise<{
     .single();
 
   const plan = subscription?.plan || "free";
-  const limit = QUOTA_LIMITS[plan as keyof typeof QUOTA_LIMITS] || QUOTA_LIMITS.free;
+  const limit = AI_RESPONSE_LIMITS[plan as keyof typeof AI_RESPONSE_LIMITS] || AI_RESPONSE_LIMITS.free;
 
-  // Compter les réponses IA générées ce mois (via ai_responses)
+  // Plan free : pas de génération automatique
+  if (plan === "free") {
+    return {
+      allowed: false,
+      remaining: 0,
+      limit: 0,
+    };
+  }
+
+  // Pour les plans payants : compter les réponses IA générées ce mois
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);

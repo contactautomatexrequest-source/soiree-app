@@ -395,8 +395,9 @@ export default function ValiderPage() {
     loadReassuranceStats();
     loadNextReview();
     
-    // Vérifier si on vient de créer un compte
-    const accountCreated = searchParams.get("account_created");
+    // Vérifier si on vient de créer un compte via l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const accountCreated = urlParams.get("account_created");
     if (accountCreated === "true") {
       setShowWelcomeMessage(true);
       // Retirer le paramètre de l'URL après 5 secondes
@@ -414,7 +415,7 @@ export default function ValiderPage() {
     return () => {
       clearInterval(refreshInterval);
     };
-  }, [searchParams, router]);
+  }, [router]);
 
   if (loading) {
     return (

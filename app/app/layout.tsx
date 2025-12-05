@@ -5,6 +5,14 @@ import { RightPanelWrapper } from "@/components/RightPanelWrapper";
 import { LayoutContent } from "@/components/layout/LayoutContent";
 import { AppFooter } from "@/components/AppFooter";
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function AppLayout({
   children,
@@ -31,7 +39,7 @@ export default async function AppLayout({
       </div>
     );
   } catch (error) {
-    console.error("Error in AppLayout:", error);
+    console.error("[APP_LAYOUT] Error:", error);
     redirect("/sign-in");
   }
 }

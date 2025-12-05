@@ -131,10 +131,10 @@ export default function DashboardPage() {
           setUserPlan(currentPlan);
         }
 
-        // Charger le profil business (toujours prendre le plus récent)
+        // Charger le profil business (toujours prendre le plus récent, avec incoming_alias)
         const { data: businessProfile } = await supabase
           .from("business_profiles")
-          .select("id, metier, nom_etablissement, ville, ton_marque")
+          .select("id, metier, nom_etablissement, ville, ton_marque, incoming_alias")
           .eq("user_id", user.id)
           .order("updated_at", { ascending: false })
           .limit(1)
@@ -363,7 +363,7 @@ export default function DashboardPage() {
           window.dispatchEvent(new CustomEvent("business-profile-updated"));
         }
       } else {
-        // Créer un nouveau profil
+        // Créer un nouveau profil (le trigger SQL générera automatiquement incoming_alias)
         const { data, error } = await supabase
           .from("business_profiles")
           .insert({
@@ -372,8 +372,9 @@ export default function DashboardPage() {
             nom_etablissement: formData.nom_etablissement,
             ville: formData.ville,
             ton_marque: formData.ton_marque,
+            // incoming_alias sera généré automatiquement par le trigger SQL
           })
-          .select()
+          .select("id, metier, nom_etablissement, ville, ton_marque, incoming_alias")
           .single();
 
         if (error) {
@@ -393,6 +394,22 @@ export default function DashboardPage() {
           
           // Déclencher un événement pour notifier les autres composants
           window.dispatchEvent(new CustomEvent("business-profile-updated"));
+          
+          // Si incoming_alias n'est pas encore généré, attendre un peu et recharger
+          if (!data.incoming_alias) {
+            setTimeout(async () => {
+              const { data: reloadedProfile } = await supabase
+                .from("business_profiles")
+                .select("id, metier, nom_etablissement, ville, ton_marque, incoming_alias")
+                .eq("id", data.id)
+                .single();
+              
+              if (reloadedProfile) {
+                setProfile(reloadedProfile);
+                window.dispatchEvent(new CustomEvent("business-profile-updated"));
+              }
+            }, 1000);
+          }
         }
       }
     } catch (err: any) {

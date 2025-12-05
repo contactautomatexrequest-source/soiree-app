@@ -76,17 +76,26 @@ export default function ConnexionAvisPage() {
     
     setUserPlan(subscription?.plan || "free");
 
-    // Charger les établissements
+    // Charger les établissements (avec incoming_alias, toujours prendre le plus récent)
     const { data: profiles, error: profilesError } = await supabase
       .from("business_profiles")
       .select("id, nom_etablissement, ville, incoming_alias, metier, ton_marque")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("updated_at", { ascending: false });
 
     if (profilesError) {
       console.error("Error loading business profiles:", profilesError);
     } else if (profiles) {
       setBusinessProfiles(profiles);
+      
+      // Si un établissement n'a pas d'alias, forcer la génération
+      for (const profile of profiles) {
+        if (!profile.incoming_alias) {
+          // Le trigger SQL devrait générer l'alias, mais on peut forcer si nécessaire
+          // En production, le trigger devrait s'en charger automatiquement
+          console.log(`Profile ${profile.id} n'a pas d'alias, le trigger devrait le générer`);
+        }
+      }
     }
 
     // Charger les profils Google Business
@@ -193,7 +202,7 @@ export default function ConnexionAvisPage() {
           Connexion des avis Google
         </h1>
         <p className="text-sm text-slate-400">
-          Connecte ton profil Google Business ou configure le transfert d'emails pour recevoir automatiquement tes avis.
+          Configure le transfert d'emails pour recevoir automatiquement tes avis Google.
         </p>
       </div>
 
@@ -203,14 +212,152 @@ export default function ConnexionAvisPage() {
         </Card>
       )}
 
-      {/* Section 1 : Synchronisation Google Business (automatique) */}
+      {/* Section 1 : Transfert d'emails (recommandé) */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-slate-50">
-            🔗 Synchronisation automatique Google Business
+            📧 Transfert d'emails
           </h2>
-          <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/50">
+          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/50">
             Recommandé
+          </Badge>
+        </div>
+
+        {businessProfiles.length === 0 ? (
+          <Card className="bg-slate-900/50 border border-slate-700 p-6">
+            <p className="text-slate-300 text-center mb-4">
+              Aucun établissement configuré.
+            </p>
+            <Link href="/app/profil">
+              <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+                Créer un profil établissement
+              </Button>
+            </Link>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {businessProfiles.map((business) => {
+              const emailAddress = business.incoming_alias 
+                ? buildReviewEmailAddress(business.incoming_alias)
+                : null;
+              const hasGoogleSync = googleProfiles.some(
+                (gp) => gp.business_profile_id === business.id
+              );
+
+              return (
+                <Card 
+                  key={business.id}
+                  className="bg-gradient-to-br from-emerald-500/10 to-indigo-500/10 border-2 border-emerald-500/40 rounded-xl shadow-lg p-6"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <h3 className="text-lg font-semibold text-slate-50">
+                          {business.nom_etablissement}
+                        </h3>
+                        {hasGoogleSync ? (
+                          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/50">
+                            Google connecté
+                          </Badge>
+                        ) : business.incoming_alias ? (
+                          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/50">
+                            Prêt à configurer
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/50">
+                            En attente
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-400 mb-4">
+                        {business.ville}
+                      </p>
+
+                      {business.incoming_alias ? (
+                        <div className="space-y-4">
+                          {/* Adresse email mise en avant */}
+                          <div className="bg-slate-950/90 border-2 border-emerald-500/50 rounded-lg p-4">
+                            <p className="text-sm font-semibold text-emerald-300 mb-3 flex items-center gap-2">
+                              <span>📧</span>
+                              <span>Adresse email à configurer dans ta boîte de messagerie :</span>
+                            </p>
+                            <div className="flex items-center gap-3 mb-3">
+                              <code className="flex-1 px-4 py-3 bg-slate-900 border border-emerald-500/30 rounded-lg text-base text-emerald-300 font-mono break-all font-semibold">
+                                {emailAddress || `${business.incoming_alias}@avisprofr.com`}
+                              </code>
+                              <Button
+                                onClick={() => handleCopyEmail(business.incoming_alias!, business.id)}
+                                className={`h-12 px-6 text-base font-semibold ${
+                                  copySuccessId === business.id
+                                    ? "bg-emerald-500 hover:bg-emerald-600"
+                                    : "bg-emerald-600 hover:bg-emerald-700"
+                                } text-white shadow-lg`}
+                              >
+                                {copySuccessId === business.id ? "✓ Copié !" : "Copier l'adresse"}
+                              </Button>
+                            </div>
+                            <p className="text-xs text-slate-400 mt-2">
+                              Copie cette adresse et configure-la dans les paramètres de transfert de ta boîte email (Gmail, Outlook, etc.)
+                            </p>
+                          </div>
+
+                          {/* Instructions détaillées */}
+                          <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-4">
+                            <p className="text-sm font-semibold text-indigo-300 mb-3">
+                              📋 Instructions étape par étape :
+                            </p>
+                            <ol className="text-sm text-slate-300 space-y-3 ml-4 list-decimal">
+                              <li>
+                                <span className="font-semibold">Ouvre les paramètres de ta boîte email</span> (Gmail, Outlook, etc.)
+                              </li>
+                              <li>
+                                <span className="font-semibold">Trouve la section "Transfert" ou "Forwarding"</span>
+                              </li>
+                              <li>
+                                <span className="font-semibold">Ajoute l'adresse ci-dessus</span> : <code className="text-indigo-300 font-mono bg-slate-900 px-2 py-1 rounded">{emailAddress || `${business.incoming_alias}@avisprofr.com`}</code>
+                              </li>
+                              <li>
+                                <span className="font-semibold">Active le transfert pour les emails de notifications Google</span>
+                              </li>
+                              <li>
+                                <span className="font-semibold">Les avis arriveront automatiquement dans AvisPro</span> dès qu'ils seront publiés sur Google
+                              </li>
+                            </ol>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                          <p className="text-sm text-amber-300 mb-2">
+                            ⚠️ Alias email en cours de génération
+                          </p>
+                          <p className="text-xs text-slate-400 mb-3">
+                            L'alias email est en cours de génération. Recharge la page dans quelques instants.
+                          </p>
+                          <Button
+                            onClick={() => loadData()}
+                            className="bg-amber-600 hover:bg-amber-700 text-white text-sm"
+                          >
+                            Recharger la page
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Section 2 : Synchronisation Google Business (alternative) */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-slate-50">
+            🔗 Synchronisation Google Business
+          </h2>
+          <Badge className="bg-slate-500/20 text-slate-300 border-slate-500/50">
+            Alternative
           </Badge>
         </div>
 
@@ -219,15 +366,14 @@ export default function ConnexionAvisPage() {
             <div className="text-center">
               <div className="text-4xl mb-4">🔗</div>
               <h3 className="text-lg font-semibold text-slate-50 mb-2">
-                Connecte ton profil Google Business
+                Synchronisation Google Business (optionnel)
               </h3>
               <p className="text-sm text-slate-400 mb-4">
-                Synchronise automatiquement tes avis et tes données depuis Google Business Profile. 
-                Plus rapide et plus fiable que le transfert manuel.
+                Alternative au transfert d'emails : synchronise automatiquement tes avis depuis Google Business Profile.
               </p>
               <Button
                 onClick={handleConnectGoogle}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="bg-slate-600 hover:bg-slate-700 text-white"
               >
                 Connecter Google Business
               </Button>
@@ -304,7 +450,7 @@ export default function ConnexionAvisPage() {
                       <Button
                         onClick={() => handleSync(profile.google_place_id, profile.business_profile_id || null)}
                         disabled={profile.sync_en_cours || syncing === profile.google_place_id}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+                        className="bg-slate-600 hover:bg-slate-700 text-white text-sm"
                         size="sm"
                       >
                         {syncing === profile.google_place_id ? "Sync..." : "Resynchroniser"}
@@ -337,131 +483,6 @@ export default function ConnexionAvisPage() {
         )}
       </div>
 
-      {/* Section 2 : Transfert d'emails (manuel) */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-50">
-            📧 Transfert d'emails (méthode alternative)
-          </h2>
-          <Badge className="bg-slate-500/20 text-slate-300 border-slate-500/50">
-            Manuel
-          </Badge>
-        </div>
-
-        {businessProfiles.length === 0 ? (
-          <Card className="bg-slate-900/50 border border-slate-700 p-6">
-            <p className="text-slate-300 text-center mb-4">
-              Aucun établissement configuré.
-            </p>
-            <Link href="/app/profil">
-              <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
-                Créer un profil établissement
-              </Button>
-            </Link>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {businessProfiles.map((business) => {
-              const emailAddress = business.incoming_alias 
-                ? buildReviewEmailAddress(business.incoming_alias)
-                : null;
-              const hasGoogleSync = googleProfiles.some(
-                (gp) => gp.business_profile_id === business.id
-              );
-
-              return (
-                <Card 
-                  key={business.id}
-                  className="bg-slate-900/50 border border-slate-700 p-6"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <h3 className="text-lg font-semibold text-slate-50">
-                          {business.nom_etablissement}
-                        </h3>
-                        {hasGoogleSync ? (
-                          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/50">
-                            Google connecté
-                          </Badge>
-                        ) : business.incoming_alias ? (
-                          <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/50">
-                            Email configuré
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/50">
-                            À configurer
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-slate-400 mb-4">
-                        {business.ville}
-                      </p>
-
-                      {business.incoming_alias ? (
-                        <div className="space-y-4">
-                          <div>
-                            <p className="text-sm font-semibold text-slate-300 mb-2">
-                              Adresse email de réception :
-                            </p>
-                            <div className="flex items-center gap-3">
-                              <code className="flex-1 px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-indigo-300 font-mono break-all">
-                                {emailAddress || `${business.incoming_alias}@avisprofr.com`}
-                              </code>
-                              <Button
-                                onClick={() => handleCopyEmail(business.incoming_alias!, business.id)}
-                                className={`h-10 px-4 ${
-                                  copySuccessId === business.id
-                                    ? "bg-emerald-500 hover:bg-emerald-600"
-                                    : "bg-indigo-600 hover:bg-indigo-700"
-                                }`}
-                              >
-                                {copySuccessId === business.id ? "✓ Copié !" : "Copier"}
-                              </Button>
-                            </div>
-                          </div>
-
-                          {!hasGoogleSync && (
-                            <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-4">
-                              <p className="text-sm font-semibold text-indigo-300 mb-2">
-                                📧 Instructions de configuration :
-                              </p>
-                              <ol className="text-xs text-slate-300 space-y-2 ml-4 list-decimal">
-                                <li>
-                                  Dans Google Business, va dans les paramètres de notifications
-                                </li>
-                                <li>
-                                  Configure un transfert d'email vers : <code className="text-indigo-300 font-mono">{emailAddress || `${business.incoming_alias}@avisprofr.com`}</code>
-                                </li>
-                                <li>
-                                  Active les notifications pour tous les nouveaux avis
-                                </li>
-                                <li>
-                                  Les avis arriveront automatiquement dans AvisPro
-                                </li>
-                              </ol>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-                          <p className="text-sm text-amber-300 mb-2">
-                            ⚠️ Alias email en cours de génération
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            L'alias email est en cours de génération. Recharge la page dans quelques instants.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
       {/* Bloc d'information */}
       <Card className="bg-slate-900/50 border border-slate-700 p-6">
         <h3 className="text-lg font-semibold text-slate-50 mb-3">
@@ -469,22 +490,22 @@ export default function ConnexionAvisPage() {
         </h3>
         <div className="space-y-4 text-sm text-slate-300">
           <div className="flex items-start gap-3">
-            <div className="text-2xl">🔗</div>
+            <div className="text-2xl">📧</div>
             <div>
-              <p className="font-semibold text-indigo-300 mb-1">Synchronisation Google Business (Recommandé)</p>
+              <p className="font-semibold text-emerald-300 mb-1">Transfert d'emails (Recommandé)</p>
               <p className="text-slate-400 text-xs">
-                Synchronisation automatique complète : profil, avis, statistiques. Plus rapide, plus fiable, 
-                aucune configuration manuelle nécessaire. Les données sont mises à jour automatiquement toutes les 6 heures.
+                Méthode simple et fiable : configure le transfert d'emails dans ta boîte de messagerie. 
+                Les avis arrivent automatiquement dès qu'ils sont publiés sur Google. Aucune connexion API nécessaire.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="text-2xl">📧</div>
+            <div className="text-2xl">🔗</div>
             <div>
-              <p className="font-semibold text-blue-300 mb-1">Transfert d'emails (Alternative)</p>
+              <p className="font-semibold text-slate-300 mb-1">Synchronisation Google Business (Alternative)</p>
               <p className="text-slate-400 text-xs">
-                Méthode manuelle via transfert d'emails. Nécessite une configuration dans Google Business. 
-                Utile si tu préfères garder le contrôle ou si la synchronisation Google n'est pas disponible.
+                Synchronisation automatique complète : profil, avis, statistiques. Nécessite une connexion OAuth Google. 
+                Les données sont mises à jour automatiquement toutes les 6 heures.
               </p>
             </div>
           </div>

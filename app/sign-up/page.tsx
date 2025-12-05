@@ -19,11 +19,38 @@ export default function SignUpPage() {
     setError("");
 
     try {
+      // Normaliser l'email
+      const normalizedEmail = email.toLowerCase().trim();
+      
+      // Vérifier d'abord si l'email existe déjà via l'API
+      try {
+        const checkResponse = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: normalizedEmail }),
+        });
+        
+        const checkData = await checkResponse.json();
+        
+        if (!checkData.available) {
+          setError("Un compte existe déjà avec cet email. Connecte-toi ou réinitialise ton mot de passe si tu as oublié ton mot de passe.");
+          setLoading(false);
+          return;
+        }
+      } catch (checkErr) {
+        // Si la vérification échoue, on continue quand même
+        // Supabase gérera l'unicité lors du signUp
+        console.warn("Vérification email échouée, continuation:", checkErr);
+      }
+      
       const supabase = createClient();
+      
       // Forcer HTTPS pour l'URL de redirection
       const origin = window.location.origin.replace(/^http:/, "https:");
+      
+      // Créer le compte
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
         options: {
           emailRedirectTo: `${origin}/auth/callback?type=signup`,
@@ -34,26 +61,68 @@ export default function SignUpPage() {
         // Traduire les messages d'erreur Supabase en français
         let errorMessage = signUpError.message || "Erreur lors de la création du compte.";
         
-        if (signUpError.message.includes("User already registered") || signUpError.message.includes("already_registered")) {
-          errorMessage = "Un compte existe déjà avec cet email. Connecte-toi ou réinitialise ton mot de passe.";
+        // Vérifier les différents types d'erreurs
+        if (
+          signUpError.message.includes("User already registered") || 
+          signUpError.message.includes("already_registered") ||
+          signUpError.message.includes("already exists") ||
+          signUpError.message.includes("email address is already in use") ||
+          signUpError.message.includes("duplicate key") ||
+          signUpError.message.includes("unique constraint")
+        ) {
+          errorMessage = "Un compte existe déjà avec cet email. Connecte-toi ou réinitialise ton mot de passe si tu as oublié ton mot de passe.";
         } else if (signUpError.message.includes("Password should be at least")) {
           errorMessage = "Le mot de passe doit contenir au moins 6 caractères.";
-        } else if (signUpError.message.includes("Invalid email")) {
+        } else if (signUpError.message.includes("Invalid email") || signUpError.message.includes("invalid email")) {
           errorMessage = "L'adresse email n'est pas valide. Vérifie l'email saisi.";
-        } else if (signUpError.message.includes("Email rate limit exceeded")) {
+        } else if (signUpError.message.includes("Email rate limit exceeded") || signUpError.message.includes("rate limit")) {
           errorMessage = "Trop de tentatives. Réessaye dans quelques minutes.";
+        } else if (signUpError.message.includes("email")) {
+          // Erreur générique liée à l'email
+          errorMessage = "Erreur avec l'adresse email. Vérifie qu'elle est correcte et réessaye.";
         }
         
         setError(errorMessage);
         setLoading(false);
-      } else {
-        // Afficher le message de vérification d'email
+        return;
+      }
+
+      // Vérifier que l'utilisateur a été créé
+      if (!data.user) {
+        setError("Erreur : aucun utilisateur créé. Vérifie ta connexion internet et réessaye.");
+        setLoading(false);
+        return;
+      }
+
+      // Vérifier si l'email de confirmation est nécessaire
+      // Si email_confirmed_at est null, l'email de confirmation doit être envoyé
+      if (!data.user.email_confirmed_at) {
+        // L'email de confirmation devrait être envoyé automatiquement par Supabase
+        // Afficher le message de vérification
         setEmailSent(true);
+        setLoading(false);
+      } else {
+        // Email déjà confirmé (cas rare, peut arriver si l'utilisateur existe déjà)
+        setError("Cet email est déjà utilisé. Connecte-toi avec ton compte existant.");
         setLoading(false);
       }
     } catch (err: any) {
       console.error("Erreur lors de la création du compte:", err);
-      setError(err.message || "Une erreur est survenue. Veuillez réessayer.");
+      
+      // Gérer les erreurs spécifiques
+      let errorMessage = "Une erreur est survenue. Veuillez réessayer.";
+      
+      if (err.message) {
+        if (err.message.includes("already") || err.message.includes("existe")) {
+          errorMessage = "Un compte existe déjà avec cet email. Connecte-toi ou réinitialise ton mot de passe.";
+        } else if (err.message.includes("network") || err.message.includes("fetch")) {
+          errorMessage = "Erreur de connexion. Vérifie ta connexion internet et réessaye.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
       setLoading(false);
     }
   };

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { GoogleBusinessSync } from "@/components/GoogleBusinessSync";
 
 interface DashboardStats {
   totalAvisCeMois: number;
@@ -129,11 +131,12 @@ export default function DashboardPage() {
           setUserPlan(currentPlan);
         }
 
-        // Charger le profil business
+        // Charger le profil business (toujours prendre le plus récent)
         const { data: businessProfile } = await supabase
           .from("business_profiles")
           .select("id, metier, nom_etablissement, ville, ton_marque")
           .eq("user_id", user.id)
+          .order("updated_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
@@ -277,6 +280,15 @@ export default function DashboardPage() {
 
     loadDashboard();
 
+    // Écouter les mises à jour du profil d'établissement depuis d'autres pages
+    const handleProfileUpdate = () => {
+      if (!cancelled) {
+        loadDashboard();
+      }
+    };
+    
+    window.addEventListener("business-profile-updated", handleProfileUpdate);
+
     // Rafraîchir les données toutes les 30 secondes pour mettre à jour les indicateurs
     const refreshInterval = setInterval(() => {
       if (!cancelled) {
@@ -287,6 +299,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
       clearInterval(refreshInterval);
+      window.removeEventListener("business-profile-updated", handleProfileUpdate);
     };
   }, []);
 
@@ -325,9 +338,29 @@ export default function DashboardPage() {
           setFormError(error.message);
           setSaving(false);
         } else {
+          // Recharger le profil pour avoir les données à jour
+          const { data: updatedProfile } = await supabase
+            .from("business_profiles")
+            .select("id, metier, nom_etablissement, ville, ton_marque")
+            .eq("id", profile.id)
+            .single();
+          
+          if (updatedProfile) {
+            setProfile(updatedProfile);
+            setFormData({
+              metier: updatedProfile.metier || "",
+              nom_etablissement: updatedProfile.nom_etablissement || "",
+              ville: updatedProfile.ville || "",
+              ton_marque: updatedProfile.ton_marque || "chaleureux",
+            });
+          }
+          
           setSaveSuccess(true);
           setTimeout(() => setSaveSuccess(false), 3000);
           setSaving(false);
+          
+          // Déclencher un événement pour notifier les autres composants
+          window.dispatchEvent(new CustomEvent("business-profile-updated"));
         }
       } else {
         // Créer un nouveau profil
@@ -348,9 +381,18 @@ export default function DashboardPage() {
           setSaving(false);
         } else if (data) {
           setProfile(data);
+          setFormData({
+            metier: data.metier || "",
+            nom_etablissement: data.nom_etablissement || "",
+            ville: data.ville || "",
+            ton_marque: data.ton_marque || "chaleureux",
+          });
           setSaveSuccess(true);
           setTimeout(() => setSaveSuccess(false), 3000);
           setSaving(false);
+          
+          // Déclencher un événement pour notifier les autres composants
+          window.dispatchEvent(new CustomEvent("business-profile-updated"));
         }
       }
     } catch (err: any) {
@@ -470,9 +512,16 @@ export default function DashboardPage() {
             </h1>
             <p className="text-sm md:text-base text-slate-300">
               {isPaidPlan(userPlan)
-                ? "AvisPro — La protection automatique de ta réputation. Chaque avis est surveillé, analysé et traité automatiquement."
-                : "AvisPro — Passe en Pro pour activer la protection automatique de ton image"}
+                ? "Ta protection AvisPro est active. Tes nouveaux avis sont traités automatiquement."
+                : "Tu as encore des avis non couverts en automatique. Le plan Pro te protège en continu."}
             </p>
+            {!isPaidPlan(userPlan) && (
+              <Link href="/app/facturation" className="mt-3 inline-block">
+                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm">
+                  Passer en Pro
+                </Button>
+              </Link>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <Badge className={`text-sm font-semibold px-4 py-2 ${
@@ -554,6 +603,12 @@ export default function DashboardPage() {
               </Card>
             ))}
           </div>
+        </div>
+
+        {/* Synchronisation Google Business */}
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-xl font-bold text-slate-50 mb-6">Synchronisation Google Business</h2>
+          <GoogleBusinessSync />
         </div>
 
         {/* Formulaire de profil */}

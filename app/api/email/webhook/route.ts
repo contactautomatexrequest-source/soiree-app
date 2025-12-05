@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { extractAliasFromEmail } from "@/lib/email/alias";
 import { extractReviewFromEmail } from "@/lib/email/extract-review";
+import { resolveEstablishmentFromAlias } from "@/lib/email/resolve-establishment";
 
 /**
  * Webhook pour recevoir les emails de Resend
@@ -23,51 +24,25 @@ export async function POST(req: NextRequest) {
     const htmlBody = emailData.html || emailData.body?.html || "";
     const messageId = emailData.message_id || emailData.id || "";
 
-    // Extraire l'alias depuis l'adresse destinataire
-    // Format attendu : avis-{id}@avisprofr.com ou n'importe quoi@avisprofr.com (catch-all)
-    // On extrait la partie avant @ pour trouver l'alias
-    let alias: string | null = null;
-    
-    // Si l'email est sur le domaine avisprofr.com, extraire la partie locale
-    if (to.includes('@avisprofr.com')) {
-      const localPart = to.split('@')[0];
-      // Si c'est au format avis-{id}, utiliser tel quel
-      if (localPart.startsWith('avis-')) {
-        alias = localPart;
-      } else {
-        // Sinon, essayer d'extraire avec la fonction existante (pour compatibilité)
-        alias = extractAliasFromEmail(to);
-      }
-    } else {
-      // Format ancien avec avis+{hash}@domain.com
-      alias = extractAliasFromEmail(to);
-    }
-    
-    if (!alias) {
-      console.warn(`No alias found in email to: ${to}`);
-      return NextResponse.json({ received: true, message: "No alias found" });
-    }
+    // Utiliser la fonction utilitaire centralisée pour résoudre l'alias
+    const establishmentMapping = await resolveEstablishmentFromAlias(to);
 
-    // Trouver l'établissement correspondant via incoming_alias
-    // Cette recherche est sécurisée : seul l'établissement avec cet alias recevra l'avis
-    // Le mapping se fait UNIQUEMENT via incoming_alias, jamais via le contenu de l'email
-    const { data: businessProfile, error: businessError } = await supabaseAdmin
-      .from("business_profiles")
-      .select("id, user_id")
-      .eq("incoming_alias", alias)
-      .single();
-
-    if (businessError || !businessProfile) {
-      console.warn(`No business profile found for alias: ${alias}`);
+    if (!establishmentMapping) {
+      console.warn(`No business profile found for email: ${to}`);
+      // Ne pas exposer d'erreur sensible, juste logger et ignorer
       return NextResponse.json({ received: true, message: "Business not found" });
     }
 
+    const { userId, establishmentId, businessProfile } = establishmentMapping;
+
     // Vérifier si cet email a déjà été traité
+    // Double vérification : par business_id ET user_id pour sécurité
     if (messageId) {
       const { data: existingReview } = await supabaseAdmin
         .from("reviews")
         .select("id")
-        .eq("business_id", businessProfile.id)
+        .eq("business_id", establishmentId)
+        .eq("user_id", userId)
         .eq("email_message_id", messageId)
         .single();
 
@@ -85,8 +60,8 @@ export async function POST(req: NextRequest) {
       console.warn(`Could not extract review from email: ${messageId}`);
       // Sauvegarder quand même l'email brut pour traitement manuel
       await supabaseAdmin.from("reviews").insert({
-        user_id: businessProfile.user_id,
-        business_id: businessProfile.id,
+        user_id: userId,
+        business_id: establishmentId,
         source: "email_auto",
         contenu_avis: `[Email non analysé] ${subject}`,
         email_message_id: messageId,
@@ -96,11 +71,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Créer l'avis dans la base
+    // Double vérification : user_id ET business_id doivent correspondre
     const { error: insertError } = await supabaseAdmin
       .from("reviews")
       .insert({
-        user_id: businessProfile.user_id,
-        business_id: businessProfile.id,
+        user_id: userId,
+        business_id: establishmentId,
         source: "email_auto",
         note: extractedReview.rating || null,
         contenu_avis: extractedReview.reviewText,

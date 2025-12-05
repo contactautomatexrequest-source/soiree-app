@@ -120,8 +120,7 @@ export function Sidebar() {
   const navItems = [
     { href: "/app/valider", label: "À valider maintenant", icon: "⚡", highlight: true },
     { href: "/app/historique", label: "Historique", icon: "📋" },
-    { href: "/app/email", label: "Avis automatiques", icon: "📧" },
-    { href: "/app/connexion-avis", label: "Connexion Google", icon: "🔗" },
+    { href: "/app/connexion-avis", label: "Connexion des avis", icon: "🔗" },
     { href: "/app/profil", label: "Dashboard", icon: "📊" },
     { href: "/app/facturation", label: "Facturation", icon: "💳" },
     // Afficher "Gérer l'abonnement" uniquement pour les plans payants

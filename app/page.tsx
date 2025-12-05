@@ -50,7 +50,7 @@ export default function HomePage() {
             </p>
 
             {/* Micro-badges de preuve discrets */}
-            <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
               <div className="flex items-center gap-2 text-sm text-neutral-500">
                 <span className="text-emerald-500">✓</span>
                 <span>Réponses automatiques</span>
@@ -62,6 +62,28 @@ export default function HomePage() {
               <div className="flex items-center gap-2 text-sm text-neutral-500">
                 <span className="text-emerald-500">✓</span>
                 <span>Image protégée</span>
+              </div>
+            </div>
+
+            {/* Bandeau Plan Pro - Bénéfices concrets */}
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-6 mb-8 max-w-2xl mx-auto">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <span className="text-2xl">⭐</span>
+                <h3 className="text-lg font-bold text-indigo-900">Plan Pro</h3>
+              </div>
+              <div className="grid md:grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-indigo-600 mb-1">0</div>
+                  <div className="text-xs text-indigo-700">avis laissé sans réponse</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-indigo-600 mb-1">&lt;30s</div>
+                  <div className="text-xs text-indigo-700">réponses automatiques</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-indigo-600 mb-1">3</div>
+                  <div className="text-xs text-indigo-700">établissements gérés</div>
+                </div>
               </div>
             </div>
 
@@ -78,12 +100,12 @@ export default function HomePage() {
               
               {/* Micro-réassurance sous le bouton */}
               <p className="text-center text-sm text-neutral-500 mt-3 mb-2">
-                Activation en moins de 2 minutes • Sans engagement
+                Sans carte bancaire • Résultat immédiat
               </p>
 
-              {/* Indicateur discret Pro */}
-              <p className="text-center text-xs text-neutral-400 mt-1 mb-4">
-                Automatisations complètes disponibles dans les plans payants
+              {/* Preuve sociale */}
+              <p className="text-center text-xs text-neutral-400 mt-2 mb-4">
+                Déjà utilisé par des établissements locaux pour protéger leur réputation en continu.
               </p>
 
               {/* Lien secondaire - Visuellement secondaire */}

@@ -41,6 +41,7 @@ export default function ValiderPage() {
   const [showFullResponse, setShowFullResponse] = useState(false);
   const [processedReviewIds, setProcessedReviewIds] = useState<Set<string>>(new Set());
   const processedReviewIdsRef = useRef<Set<string>>(new Set());
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
   const [reassuranceStats, setReassuranceStats] = useState({
     avisTraitesAuto: 0,
     avisNegatifsNeutralises: 0,

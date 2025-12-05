@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Review {
   id: string;
@@ -395,6 +395,17 @@ export default function ValiderPage() {
     loadReassuranceStats();
     loadNextReview();
     
+    // Vérifier si on vient de créer un compte
+    const accountCreated = searchParams.get("account_created");
+    if (accountCreated === "true") {
+      setShowWelcomeMessage(true);
+      // Retirer le paramètre de l'URL après 5 secondes
+      setTimeout(() => {
+        router.replace("/app/valider");
+        setShowWelcomeMessage(false);
+      }, 5000);
+    }
+    
     // Rafraîchir les stats toutes les 30 secondes
     const refreshInterval = setInterval(() => {
       loadReassuranceStats();
@@ -403,7 +414,7 @@ export default function ValiderPage() {
     return () => {
       clearInterval(refreshInterval);
     };
-  }, []);
+  }, [searchParams, router]);
 
   if (loading) {
     return (
@@ -460,6 +471,25 @@ export default function ValiderPage() {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Message de bienvenue après confirmation email */}
+      {showWelcomeMessage && (
+        <div className="mb-6 flex-shrink-0">
+          <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/30 rounded-xl shadow-premium p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500/50 flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">🎉</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-bold text-emerald-300 mb-1">Bienvenue sur AvisPro !</h3>
+                <p className="text-xs text-emerald-200/80">
+                  Ton compte a été créé avec succès. Tu es maintenant connecté et prêt à utiliser AvisPro.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Titre et indicateurs de valeur */}
       <div className="mb-6 flex-shrink-0">
         <h1 className="text-2xl font-bold text-slate-50 mb-2">À valider maintenant</h1>

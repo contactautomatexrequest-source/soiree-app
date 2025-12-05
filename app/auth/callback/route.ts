@@ -66,19 +66,20 @@ export async function GET(request: NextRequest) {
     }
 
     if (data.user) {
-      // Vérifier si l'email est confirmé
-      const isEmailConfirmed = data.user.email_confirmed_at !== null;
-
-      // Si c'est une confirmation d'email (type=signup) ou si l'utilisateur vient d'être confirmé
-      if (type === "signup" || type === "email" || (type === null && !isEmailConfirmed)) {
-        return NextResponse.redirect(
-          new URL("/sign-in?account_created=true", request.url)
-        );
-      }
-
+      // L'utilisateur est maintenant connecté (la session est créée via exchangeCodeForSession)
+      // Si c'est une confirmation d'email (signup), connecter automatiquement
+      
       // Si un paramètre "next" est fourni, l'utiliser
       if (next) {
         return NextResponse.redirect(new URL(next, request.url));
+      }
+
+      // Rediriger directement vers le dashboard (l'utilisateur est déjà connecté)
+      // Si c'est une confirmation d'email, on peut ajouter un paramètre pour afficher un message
+      if (type === "signup" || type === "email") {
+        return NextResponse.redirect(
+          new URL("/app/valider?account_created=true", request.url)
+        );
       }
 
       // Sinon, rediriger vers le dashboard
@@ -106,16 +107,20 @@ export async function GET(request: NextRequest) {
     }
 
     if (data.user) {
-      // Si c'est une confirmation d'email, rediriger vers sign-in
-      if (type === "signup" || type === "email") {
-        return NextResponse.redirect(
-          new URL("/sign-in?account_created=true", request.url)
-        );
-      }
-
+      // L'utilisateur est maintenant connecté (la session est créée via verifyOtp)
+      // Si c'est une confirmation d'email, connecter automatiquement
+      
       // Si un paramètre "next" est fourni, l'utiliser
       if (next) {
         return NextResponse.redirect(new URL(next, request.url));
+      }
+
+      // Rediriger directement vers le dashboard (l'utilisateur est déjà connecté)
+      // Si c'est une confirmation d'email, on peut ajouter un paramètre pour afficher un message
+      if (type === "signup" || type === "email") {
+        return NextResponse.redirect(
+          new URL("/app/valider?account_created=true", request.url)
+        );
       }
 
       // Sinon, rediriger vers le dashboard
